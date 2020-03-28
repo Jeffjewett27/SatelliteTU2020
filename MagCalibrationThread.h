@@ -1,0 +1,2 @@
+void startMagCalibrationThread();
+void magCalibrationThread();
