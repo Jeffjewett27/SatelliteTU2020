@@ -61,8 +61,6 @@ void enqueue(queue *q, int val){
 }     
     
 //int is a placeholder for testing
-//If there is nothing to dequeue it returns some int, attempting to put an 'else if return -1' statement results in returning -1 every time//
-//don't use node finger use the same data value that you are fetching
 int dequeue(queue *q){
  node *finger = q->front;
  int value = q->front->value;
