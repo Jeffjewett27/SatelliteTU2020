@@ -23,13 +23,9 @@ int isEmpty(queue *q){
   return (getSize(q) == 0);
 }
   
-//Seems to enter an infinit loop//
 void clear(queue *q){
   while(q->size != 0){
-    printf("Result of clear: %d\n",dequeue(q));
-    printf("getSize result: %d\n",getSize(q));
-    pause(2000);
-    q->size--;
+    dequeue(q);
   }
 }
 
@@ -50,9 +46,6 @@ void enqueue(queue *q, int val){
   if(isEmpty(q)){
     q->front = finger;
     q->back = q->front;
-  /*}else if(getSize(q) == 1){
-    q->back = finger;
-    q->front->next = q->back;*/
   }else{
     q->back->next = finger;
     q->back = finger;
@@ -60,7 +53,6 @@ void enqueue(queue *q, int val){
   q->size++;
 }     
     
-//int is a placeholder for testing
 int dequeue(queue *q){
  node *finger = q->front;
  int value = q->front->value;
@@ -75,6 +67,7 @@ int main(){
   queue *q;
   q = malloc(sizeof(queue));
   initialize(q);
+  /*
   printf("%d\n",isEmpty(q));
   enqueue(q,9);
   enqueue(q,90);
@@ -86,7 +79,6 @@ int main(){
   
   
   clear(q);
-  /*
   printf("Peek: %d",peek(q));
   
   printf("dequeue: %d\n",dequeue(q));
