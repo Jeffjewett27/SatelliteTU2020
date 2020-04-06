@@ -1,44 +1,36 @@
-//Main.c
-//Purpose: Coordinate and control all sending/receiving of sensor data.
+/*
+ * Author: Mitchell Toth
+ * Modification Date: April 5, 2020
+ * Purpose: Coordinate and control all sending/receiving of sensor data.
+ */
 
 #include "simpletools.h"
 #include "UVSensor.h"
 #include "IMUSensor.h"
+#include "queue.h"
+#include "Packet.h"
+#include "EEPROM.h"
+#include "DataConversion.h"
 
+#define NUM_1_BYTE_READINGS 32
+#define NUM_2_BYTE_READINGS 16
+#define NUM_4_BYTE_READINGS 8
 
 //Function declarations.
 void flashLEDs();
 void initializeAllSensors();
 
-const int NUM_1_BYTE_READINGS = 32;
-const int NUM_2_BYTE_READINGS = 16;
-
-//--Need serial bus queue. Caleb.--
-
-struct Packet {
-  uint8_t fnCode;
-  union {
-    uint8_t oneByte[32];
-    //Use 16-bit float below maybe.
-    uint16_t twoByte[16];
-  } ArrayType;
-  uint8_t iteration;
-  uint8_t packetsCounter;
-};
-
-
-//Check if compiler has queue type already.
-//volatile Packet serialBusQueue[10];
-
 //0 = not calibrated, 1 = calibrated, global to all threads.
 volatile int magnetometerCalibrated = 0;
 
 
+
 //Main function
 int main() {
-  
-  //LED flash to show that the parallax board is connected and working.
-  flashLEDs();
+  //Packet queue.
+  queue *serialBusQueue;
+  serialBusQueue = malloc(sizeof(queue));
+  initializeQueue(serialBusQueue);
   
   //Powerup event occurs.
   //Ensure IMU is powered up. Involves solid state relay.
@@ -47,8 +39,12 @@ int main() {
   //Get all the sensors ready to read and transmit data.
   initializeAllSensors();
   
+  //LED flash to show that the parallax board is connected and working.
+  flashLEDs();
+  
   //Keep track of total packets sent, as well as main loop iteration.
-  uint8_t packetsCounter = 0;
+  setPacketCount(0);  //Need to have this be 0 on initial power up.
+  uint8_t packetsCounter = readPacketCount();
   uint8_t iteration = 0;
 
   struct Vector3 accelerationReadings[NUM_2_BYTE_READINGS];
@@ -58,7 +54,7 @@ int main() {
   
   //Make arrays for each sensor, assume everything requires 2 bytes.
   
-  struct Packet generalSensorPacket;
+  Packet generalSensorPacket;
   
   
   //Main loop, iterate as long as there is power:
@@ -67,14 +63,18 @@ int main() {
     //While gathering enough data to do this, we create "general sensor values" packets.
     //This allows us to at least send some data immediately when the serial busy line goes low.
     
-  	//For approximately 1 minute (15 iterations -- approx 4 sec each):
+  	//For approximately 1 minute (32 iterations -- approx 2 sec each):
     for (int i=0; i<32; i++) {
   		//If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
       if (i%8 == 0) {
         //Create "general sensor values" packet.
-        //Add packet to serial bus write queue.
-        //Packet generalSensorPacket;
-        //serialBusQueue.enqueue(generalSensorPacket);
+        generalSensorPacket.fnCode = 0x01;
+        //Add data
+        generalSensorPacket.iteration = iteration;
+        generalSensorPacket.packetsCounter = packetsCounter;
+        packetsCounter++;
+        setPacketCount(packetsCounter);
+        enqueue(serialBusQueue, generalSensorPacket);
       }
       
       /*--------------------------------------------
@@ -97,60 +97,116 @@ int main() {
         gyroscopeReadings[i/2] = imu_gyroscopeRead();
         magnetometerReadings[i/2] = imu_magnetometerRead();
         uv1Readings[i/2] = uvRead();
-      }
+      }       
 
       //Delay 2 sec.
       pause(2000);
     }
   
   	//Clear write queue of any "general sensor values" packets.
-  	//serialBusQueue.clear();
+  	clearQueue(serialBusQueue);
    
-    //Packet for UV
-    struct Packet sensorPacket;
-    sensorPacket.fnCode = 0x03;
+   
+    //-------------------------Packets for UV-------------------------
+    //Packet for UV1 (compressed)
+    Packet sensorPacket;
+    sensorPacket.fnCode = 0x23;
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = uv1Readings[i];
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(uv1Readings[i], 0, 5);
     }
     sensorPacket.iteration = iteration;
     sensorPacket.packetsCounter = packetsCounter;
     packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
     
-    //enqueue sensorPacket
-    //Now re-do sensorPacket for other sensors...
-    
-    //Packet for MagX
-    sensorPacket.fnCode = 0x04;
-    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = magnetometerReadings[i].x;
+    //Packet for UV1 (un-compressed)
+    sensorPacket.fnCode = 0x43;
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = uv1Readings[i*2];
     }
     sensorPacket.iteration = iteration;
     sensorPacket.packetsCounter = packetsCounter;
     packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
     
-    //enqueue sensorPacket
     
-    //Packet for MagY
-    sensorPacket.fnCode = 0x05;
+    
+    //-------------------------Packets for MagX-------------------------
+    //Packet for MagX (compressed)
+    sensorPacket.fnCode = 0x24;
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = magnetometerReadings[i].y;
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].x, 0, 5);
     }
     sensorPacket.iteration = iteration;
     sensorPacket.packetsCounter = packetsCounter;
     packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
     
-    //enqueue sensorPacket
-    
-    //Packet for MagZ
-    sensorPacket.fnCode = 0x06;
-    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = magnetometerReadings[i].z;
+    //Packet for MagX (un-compressed)
+    sensorPacket.fnCode = 0x44;
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i*2].x;
     }
     sensorPacket.iteration = iteration;
     sensorPacket.packetsCounter = packetsCounter;
     packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
     
-    //enqueue sensorPacket
+    
+    
+    //-------------------------Packets for MagY-------------------------
+    //Packet for MagY (compressed)
+    sensorPacket.fnCode = 0x25;
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].y, 0, 5);
+    }
+    sensorPacket.iteration = iteration;
+    sensorPacket.packetsCounter = packetsCounter;
+    packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
+    
+    //Packet for MagY (un-compressed)
+    sensorPacket.fnCode = 0x45;
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i].y;
+    }
+    sensorPacket.iteration = iteration;
+    sensorPacket.packetsCounter = packetsCounter;
+    packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
+    
+    
+    
+    //-------------------------Packets for MagZ-------------------------
+    //Packet for MagZ (compressed)
+    sensorPacket.fnCode = 0x26;
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].z, 0, 5);
+    }
+    sensorPacket.iteration = iteration;
+    sensorPacket.packetsCounter = packetsCounter;
+    packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
+    
+    //Packet for MagZ (un-compressed)
+    sensorPacket.fnCode = 0x46;
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i].z;
+    }
+    sensorPacket.iteration = iteration;
+    sensorPacket.packetsCounter = packetsCounter;
+    packetsCounter++;
+    setPacketCount(packetsCounter);
+    enqueue(serialBusQueue, sensorPacket);
+    
+    
     //etc.
     
     
@@ -165,15 +221,15 @@ int main() {
     //--------------------------------------------------- */
 
     //Don't move on until queue is emptied. Because we don't want overflow issues.
-    //Maybe use a shared variable. Or maybe proceed when queue size is low enough.
-    //while (!queueEmpty) {pause(10);}
+    while (!isQueueEmpty(serialBusQueue)) {pause(10);}
   
-    iteration++;
+    iteration++;  //Maybe in EEPROM
   }
 }
 
 
 void initializeAllSensors() {
+  eeprom_initI2C();
   imu_initialize();
   //temperature1_initialize();
   //temperature2_initialize();
@@ -192,4 +248,30 @@ void flashLEDs() {
   pause(500);
   low(26);
   low(27);
+}
+
+/*
+uint8_t createSensorPackets(queue *serialBusQueue, float *readings, int compressData, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter, int isSigned, int k) {
+  Packet sensorPacket;
+  sensorPacket.fnCode = fnCode;
+  
+  if (compressData) {
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(readings[i], isSigned, k);
+    }
+  }  
+  else {
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = readings[i*2], isSigned, k);
+    }
+  }      
+  
+  sensorPacket.iteration = iteration;
+  sensorPacket.packetsCounter = packetsCounter;
+  packetsCounter++;
+  setPacketCount(packetsCounter);
+  enqueue(serialBusQueue, sensorPacket);
+  return packetsCounter;
 }  
+*/
+
