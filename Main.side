@@ -3,6 +3,11 @@ IMUSensor.c
 UVSensor.h
 UVSensor.c
 IMUSensor.h
+queue.c
+EEPROM.c
+queue.h
+Packet.h
+DataConversion.c
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os

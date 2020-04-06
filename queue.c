@@ -1,14 +1,10 @@
 /*
  * Author: Caleb
- * Modification Date: April 1, 2020
+ * Modification Date: April 5, 2020
  */
 
 #include "simpletools.h"
 #include "queue.h"
-
-typedef struct node node;
-
-typedef struct queue queue;
 
 void initializeQueue(queue *q){
   q->size = 0;
@@ -30,12 +26,12 @@ int getQueueSize(queue *q){
   return(q->size);
 }  
       
-int peekQueue(queue *q){
+Packet peekQueue(queue *q){
   return(q->front->value);
 }
   
 //int is a placeholder for testing
-void enqueue(queue *q, int val){
+void enqueue(queue *q, Packet val){
   node *finger;
   finger = malloc(sizeof(node));
   finger->value = val;
@@ -50,9 +46,9 @@ void enqueue(queue *q, int val){
   q->size++;
 }     
     
-int dequeue(queue *q){
+Packet dequeue(queue *q){
  node *finger = q->front;
- int value = q->front->value;
+ Packet value = q->front->value;
  q->front = q->front->next;
  q->size--;
  free(finger);
@@ -60,41 +56,10 @@ int dequeue(queue *q){
  return value;
 }
 
+/*
 int main(){
   queue *q;
   q = malloc(sizeof(queue));
-  initializeQueue(q);
-  /*
-  printf("%d\n",isQueueEmpty(q));
-  enqueue(q,9);
-  enqueue(q,90);
-  enqueue(q,55);
-  enqueue(q,12);
-  enqueue(q,45);
-  enqueue(q,22);
-  enqueue(q,6);
-  
-  
-  clearQueue(q);
-  printf("Peek: %d",peekQueue(q));
-  
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));  
-  printf("dequeue: %d\n",dequeue(q));
-  printf("Peek: %d\n",peekQueue(q));
-  printf("dequeue: %d\n",dequeue(q));
-  
-  print("done");   */    
-}  
+  initializeQueue(q);    
+} 
+*/  
