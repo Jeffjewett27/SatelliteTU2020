@@ -116,7 +116,6 @@ uint16_t reduceFloat16bit(float f, int isSigned, uint8_t k) {
   uint32_t frac = (c << 9) >> 9; //remove the top 9 bits to keep the 23 fraction bits
   uint8_t exp = (c << 1) >> 24; //remove the top sign bit and the 23 fraction bits
   uint16_t sign = isSigned ? c >> 31 : 0; //remove all but the sign bit
-  print("frac: %x, exp: %x, sign: %x\n", frac, exp, sign);
   uint8_t m = 16 - k - isSigned; //get number of fraction bits
   uint32_t bias = 127; //the bias constant for single precision
   uint8_t biasSmall = (1 << (k - 1)) - 1; //the bias for k exponent bits
@@ -128,11 +127,8 @@ uint16_t reduceFloat16bit(float f, int isSigned, uint8_t k) {
   if (expVal > (1 << k) - 1) {
     expVal = (1 << k) - 1; //if exponent overflows, set to all 1s (infinity)
   }
-  print("expVal: %x, biasSmall: %x\n", expVal, biasSmall);
-  uint8_t expSmall = expVal;    
-  print("frac: %x, exp: %x\n", fracSmall, expSmall);
-  print("m+k: %d\n", m+k);
-  return (expSmall << m) + fracSmall + (sign << 15);
+  uint8_t expSmall = expVal; //downcast 32 bit to 8 bit
+  return (expSmall << m) + fracSmall + (sign << 15); //join components together
 }  
 
 ///extends a 16 bit float to a single precision float
@@ -148,15 +144,12 @@ float extendFloatFrom16bit(uint16_t b, int isSigned, int k) {
   if (k > 8) {
     k = 8;
   }   
-  print("byte: %x\n", b);
   uint8_t m = 16 - k - isSigned; //get number of fraction bits
   uint16_t fracMask = (1 << m) - 1;
   uint16_t fracSmall = b & fracMask; //get lower m bits
   uint16_t expMask = (1 << k) - 1;
   uint8_t expSmall = (b >> m) & expMask; //get exponent bits
   uint8_t sign = isSigned ? b >> 15 : 0; //get sign bit or 0 if unsigned
-  print("m: %d, k: %d, isSigned: %d\n", m, k, isSigned);
-  print("frac: %x, exp: %x, sign: %x\n", fracSmall, expSmall, sign);
   uint8_t bias = 127; //single precision bias constant
   uint8_t biasSmall = (1 << (k - 1)) - 1; //bias for k bit exponent
   uint32_t frac = fracSmall << (23 - m); //extend fraction to 23 bits
@@ -167,10 +160,7 @@ float extendFloatFrom16bit(uint16_t b, int isSigned, int k) {
   if (expSmall == (1 << k) - 1) {
     exp = ~0; //if expSmall was max val, exp is max val
   }    
-  print("frac: %x, exp: %x\n", frac, exp);
-  uint32_t val = (exp << 23) + frac + (sign << 31);
-  float f = *((float *)&val);
-  print("float: %.5f", f);
-  while(1);
-  return 0;
+  uint32_t val = (exp << 23) + frac + (sign << 31); //join components together
+  float f = *((float *)&val); //cast back to float
+  return f;
 }   
