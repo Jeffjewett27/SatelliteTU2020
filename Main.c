@@ -1,6 +1,6 @@
 /*
  * Author: Mitchell Toth
- * Modification Date: April 5, 2020
+ * Modification Date: April 10, 2020
  * Purpose: Coordinate and control all sending/receiving of sensor data.
  */
 
@@ -19,6 +19,7 @@
 //Function declarations.
 void flashLEDs();
 void initializeAllSensors();
+uint8_t setPacketFieldsAndEnqueue(Packet sensorPacket, queue *serialBusQueue, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter);
 
 //0 = not calibrated, 1 = calibrated, global to all threads.
 volatile int magnetometerCalibrated = 0;
@@ -67,14 +68,24 @@ int main() {
     for (int i=0; i<32; i++) {
   		//If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
       if (i%8 == 0) {
-        //Create "general sensor values" packet.
-        generalSensorPacket.fnCode = 0x01;
-        //Add data
-        generalSensorPacket.iteration = iteration;
-        generalSensorPacket.packetsCounter = packetsCounter;
-        packetsCounter++;
-        setPacketCount(packetsCounter);
-        enqueue(serialBusQueue, generalSensorPacket);
+        //Create "general sensor values" packets, both compressed and uncompressed.
+        //Add data:
+        //Acceleration readings
+        generalSensorPacket.ArrayType.twoByte[0] = reduceFloat16bit(accelerationReadings[i/2].x, 1, 5);
+        generalSensorPacket.ArrayType.twoByte[2] = reduceFloat16bit(accelerationReadings[i/2].y, 1, 5);
+        generalSensorPacket.ArrayType.twoByte[4] = reduceFloat16bit(accelerationReadings[i/2].z, 1, 5);
+        //Gyroscope readings
+        generalSensorPacket.ArrayType.twoByte[6] = reduceFloat16bit(gyroscopeReadings[i/2].x, 1, 5);
+        generalSensorPacket.ArrayType.twoByte[8] = reduceFloat16bit(gyroscopeReadings[i/2].y, 1, 5);
+        generalSensorPacket.ArrayType.twoByte[10] = reduceFloat16bit(gyroscopeReadings[i/2].z, 1, 5);
+        //Magnetometer readings
+        generalSensorPacket.ArrayType.twoByte[12] = reduceFloat16bit(magnetometerReadings[i/2].x, 0, 5);  //Is magnetometer data signed?
+        generalSensorPacket.ArrayType.twoByte[14] = reduceFloat16bit(magnetometerReadings[i/2].y, 0, 5);
+        generalSensorPacket.ArrayType.twoByte[16] = reduceFloat16bit(magnetometerReadings[i/2].z, 0, 5);
+        //UV reading
+        generalSensorPacket.ArrayType.twoByte[18] = reduceFloat16bit(uv1Readings[i/2], 0, 5);
+        
+        packetsCounter = setPacketFieldsAndEnqueue(generalSensorPacket, serialBusQueue, 0x01, iteration, packetsCounter);
       }
       
       /*--------------------------------------------
@@ -105,125 +116,168 @@ int main() {
   
   	//Clear write queue of any "general sensor values" packets.
   	clearQueue(serialBusQueue);
-   
-   
-    //-------------------------Packets for UV-------------------------
-    //Packet for UV1 (compressed)
+
+
     Packet sensorPacket;
-    sensorPacket.fnCode = 0x23;
+    //------------------------------------------Packets for Acceleration X------------------------------------------
+    //Compressed  
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(uv1Readings[i], 0, 5);
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(accelerationReadings[i].x, 1, 5);
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x2e, iteration, packetsCounter);
     
-    //Packet for UV1 (un-compressed)
-    sensorPacket.fnCode = 0x43;
+    //Un-compressed
     for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.fourByte[i] = uv1Readings[i*2];
+      sensorPacket.ArrayType.fourByte[i] = accelerationReadings[i*2].x;
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x4e, iteration, packetsCounter);
     
     
     
-    //-------------------------Packets for MagX-------------------------
-    //Packet for MagX (compressed)
-    sensorPacket.fnCode = 0x24;
+    //------------------------------------------Packets for Acceleration Y------------------------------------------
+    //Compressed
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(accelerationReadings[i].y, 1, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x2f, iteration, packetsCounter);
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = accelerationReadings[i*2].y;
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x4f, iteration, packetsCounter);
+    
+    
+    
+    //------------------------------------------Packets for Acceleration Z------------------------------------------
+    //Compressed
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(accelerationReadings[i].z, 1, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x10, iteration, packetsCounter);   //What should this function code be?
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = accelerationReadings[i*2].z;
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x10, iteration, packetsCounter);   //What should this function code be?
+    
+    
+    
+    //------------------------------------------Packets for Gyro X------------------------------------------
+    //Compressed  
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(gyroscopeReadings[i].x, 1, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x2b, iteration, packetsCounter);
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = gyroscopeReadings[i*2].x;
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x4b, iteration, packetsCounter);
+    
+    
+    
+    //------------------------------------------Packets for Gyro Y------------------------------------------
+    //Compressed
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(gyroscopeReadings[i].y, 1, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x2c, iteration, packetsCounter);
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = gyroscopeReadings[i*2].y;
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x4c, iteration, packetsCounter);
+    
+    
+    
+    //------------------------------------------Packets for Gyro Z------------------------------------------
+    //Compressed
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(gyroscopeReadings[i].z, 1, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x2d, iteration, packetsCounter);
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = gyroscopeReadings[i*2].z;
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x4d, iteration, packetsCounter);
+    
+    
+    
+    //------------------------------------------Packets for MagX------------------------------------------
+    //Compressed  
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
       sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].x, 0, 5);
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x24, iteration, packetsCounter);
     
-    //Packet for MagX (un-compressed)
-    sensorPacket.fnCode = 0x44;
+    //Un-compressed
     for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
       sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i*2].x;
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x44, iteration, packetsCounter);
     
     
     
-    //-------------------------Packets for MagY-------------------------
-    //Packet for MagY (compressed)
-    sensorPacket.fnCode = 0x25;
+    //------------------------------------------Packets for MagY------------------------------------------
+    //Compressed
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
       sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].y, 0, 5);
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x25, iteration, packetsCounter);
     
-    //Packet for MagY (un-compressed)
-    sensorPacket.fnCode = 0x45;
+    //Un-compressed
     for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i].y;
+      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i*2].y;
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x45, iteration, packetsCounter);
     
     
     
-    //-------------------------Packets for MagZ-------------------------
-    //Packet for MagZ (compressed)
-    sensorPacket.fnCode = 0x26;
+    //------------------------------------------Packets for MagZ------------------------------------------
+    //Compressed
     for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
       sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(magnetometerReadings[i].z, 0, 5);
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x26, iteration, packetsCounter);
     
-    //Packet for MagZ (un-compressed)
-    sensorPacket.fnCode = 0x46;
+    //Un-compressed
     for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i].z;
+      sensorPacket.ArrayType.fourByte[i] = magnetometerReadings[i*2].z;
     }
-    sensorPacket.iteration = iteration;
-    sensorPacket.packetsCounter = packetsCounter;
-    packetsCounter++;
-    setPacketCount(packetsCounter);
-    enqueue(serialBusQueue, sensorPacket);
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x46, iteration, packetsCounter);
+    
+    
+    
+    //------------------------------------------Packets for UV1------------------------------------------
+    //Compressed
+    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(uv1Readings[i], 0, 5);
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x23, iteration, packetsCounter);
+    
+    //Un-compressed
+    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+      sensorPacket.ArrayType.fourByte[i] = uv1Readings[i*2];
+    }
+    packetsCounter = setPacketFieldsAndEnqueue(sensorPacket, serialBusQueue, 0x43, iteration, packetsCounter);
     
     
     //etc.
     
-    
     /*---------------------------------------------------
-    //--To be done in a separate file. Jeff.--
-    	//Now write all queued data packets -- however long it takes: 
-    	//At 1 packet/15 seconds, N sensor packets/4 minutes for full transmission.
-    
-    	//'writeAllPackets' polls busy line, writes one packet, removes packet from queue
-    	//writeAllPackets();
-      //Separate thread. Writes to serial port.
+    //In a separate thread, write all queued data packets.
     //--------------------------------------------------- */
 
-    //Don't move on until queue is emptied. Because we don't want overflow issues.
+    //Don't move on until queue is emptied (to avoid overflow issues).
     while (!isQueueEmpty(serialBusQueue)) {pause(10);}
   
-    iteration++;  //Maybe in EEPROM
+    iteration++;
   }
 }
 
@@ -250,28 +304,15 @@ void flashLEDs() {
   low(27);
 }
 
-/*
-uint8_t createSensorPackets(queue *serialBusQueue, float *readings, int compressData, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter, int isSigned, int k) {
-  Packet sensorPacket;
-  sensorPacket.fnCode = fnCode;
-  
-  if (compressData) {
-    for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.twoByte[i] = reduceFloat16bit(readings[i], isSigned, k);
-    }
-  }  
-  else {
-    for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-      sensorPacket.ArrayType.fourByte[i] = readings[i*2], isSigned, k);
-    }
-  }      
-  
+uint8_t setPacketFieldsAndEnqueue(Packet sensorPacket, queue *serialBusQueue, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter) {
+  sensorPacket.fnCode = fnCode;      
   sensorPacket.iteration = iteration;
   sensorPacket.packetsCounter = packetsCounter;
   packetsCounter++;
   setPacketCount(packetsCounter);
   enqueue(serialBusQueue, sensorPacket);
+  print("Created packet with fnCode: %x\n", sensorPacket.fnCode);
   return packetsCounter;
 }  
-*/
+
 
