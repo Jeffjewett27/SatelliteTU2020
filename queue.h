@@ -5,18 +5,24 @@
 
 #include "Packet.h"
 
+#ifndef QUEUE_NODE
+#define QUEUE_NODE
 struct node{
   Packet value;
   struct node *next;
 };
 typedef struct node node;
+#endif
 
+#ifndef QUEUE_STRUCT
+#define QUEUE_STRUCT
 struct queue{
   int size;
   node *front;
   node *back;
 };
 typedef struct queue queue;
+#endif
 
 // Prototypes
 void initializeQueue(queue *q);
