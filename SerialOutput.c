@@ -23,7 +23,7 @@ void serialOutputLoop() {
       pause(100);
     }    
     if (isQueueEmpty(packetQueue)) {
-      return;
+      continue;
     }    
     Packet packet = peekQueue(packetQueue);
     outputPacket((char*)&packet);
