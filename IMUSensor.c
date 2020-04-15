@@ -11,9 +11,9 @@ void imu_initialize() {
 }
   
 //unit: g's
-struct Vector3 imu_accelerometerRead() {
+Vector3 imu_accelerometerRead() {
   float _imuX, _imuY, _imuZ;
-  struct Vector3 acceleration;
+  Vector3 acceleration;
   imu_readAccelCalculated(&_imuX, &_imuY, &_imuZ);
   acceleration.x = _imuX;
   acceleration.y = _imuY;
@@ -22,9 +22,9 @@ struct Vector3 imu_accelerometerRead() {
 }  
 
 //units: degrees per second
-struct Vector3 imu_gyroscopeRead() {
+Vector3 imu_gyroscopeRead() {
   float _imuX, _imuY, _imuZ;
-  struct Vector3 gyroscope;
+  Vector3 gyroscope;
   imu_readGyroCalculated(&_imuX, &_imuY, &_imuZ);
   gyroscope.x = _imuX;
   gyroscope.y = _imuY;
@@ -33,9 +33,9 @@ struct Vector3 imu_gyroscopeRead() {
 }  
 
 //units: degrees per second
-struct Vector3 imu_magnetometerRead() {
+Vector3 imu_magnetometerRead() {
   float _imuX, _imuY, _imuZ;
-  struct Vector3 magnet;
+  Vector3 magnet;
   imu_readMagCalculated(&_imuX, &_imuY, &_imuZ);
   magnet.x = _imuX;
   magnet.y = _imuY;

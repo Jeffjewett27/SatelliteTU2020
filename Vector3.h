@@ -7,4 +7,6 @@ struct Vector3 {
   float z; 
 };
 
+typedef struct Vector3 Vector3;
+
 #endif

@@ -4,6 +4,7 @@
 */
 
 #include "simpletools.h"                      // Include simpletools header
+#include "EEPROM.h"
 
 i2c *eeBus;                                   // I2C bus ID
 const uint8_t checkVal = 183;  //arbitrary nonzero constant value
@@ -26,6 +27,11 @@ void setPacketCount(uint8_t pc)                                    // Main funct
   i2c_out(eeBus, controlByte,                  
           packetAddr, 2, &pc, 1); //output the value of pc to EEPROM
 }
+
+void incrementPacketCount(uint8_t inc) {
+  uint8_t val = readPacketCount() + inc;
+  setPacketCount(val);
+}  
 
 uint8_t readPacketCount() {                                   
   if (eeBus == NULL) {

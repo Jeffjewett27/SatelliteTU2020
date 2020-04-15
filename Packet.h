@@ -1,6 +1,8 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include "simpletools.h"
+
 struct Packet {
   uint8_t fnCode;
   union {

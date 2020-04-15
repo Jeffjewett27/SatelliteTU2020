@@ -4,6 +4,8 @@ void eeprom_initI2C();
 //stores pc in the eeprom
 void setPacketCount(uint8_t pc);
 
+void incrementPacketCount(uint8_t inc);
+
 //reads pc from eeprom
 uint8_t readPacketCount();  
 
@@ -14,4 +16,4 @@ void setByteCheck();
 void resetByteCheck();
 
 //checks if unique value has been set
-uint16_t isByteCheckSet();
+uint8_t isByteCheckSet();

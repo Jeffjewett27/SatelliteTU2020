@@ -3,13 +3,17 @@
 #include "SerialOutput.h"
 
 const int BYTES_PER_PACKET = 35;
-const int ACK = 0xAA0500;
+const char ACK[] = {0xAA, 0x05, 0x00};
 const int NAK = 0xAA05FF;
-const int BUSY_PIN = 10;
+const int BUSY_PIN = 16;
 
 fdserial *sr;
 queue *packetQueue;
 int *thread;
+
+void initSerial() {
+  sr = fdserial_open(17, 18, 0, 38400);
+}  
 
 void serialOutputThread(queue *pQueue) {
   packetQueue = pQueue;
@@ -62,8 +66,13 @@ int isACK() {
     }
     response[i] = fdserial_rxChar(sr);
   }
-  int val = (*((uint32_t*)response)) >> 8;
-  return val == ACK;
+  int val = 1; //note: safer comparison
+  for (int i = 0; i < numACKBytes; ++i) {
+    if (ACK[i] != response[i]) {
+      val = 0;
+    }      
+  }    
+  return val;
 }  
 
 int isBusy() {

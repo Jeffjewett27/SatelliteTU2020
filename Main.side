@@ -8,6 +8,18 @@ EEPROM.c
 queue.h
 Packet.h
 DataConversion.c
+SerialOutput.c
+SerialOutput.h
+MultithreadTest.c
+MagCalibrationThread.c
+Vector3.c
+Vector3.h
+MultithreadTest.h
+PinValues.h
+EEPROM.h
+PacketGeneration.c
+PacketGeneration.h
+SerialOutput.c
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os
