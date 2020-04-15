@@ -25,6 +25,7 @@ const uint8_t GYROZ_FN_COMP = 0x2D;
 const uint8_t ACCX_FN_COMP = 0x2E;
 const uint8_t ACCY_FN_COMP = 0x2F;
 const uint8_t ACCZ_FN_COMP = 0x20;
+const uint8_t UV1_FN_COMP = 0x23;
 
 const uint8_t GENERAL_FN = 0x01;
 
@@ -50,7 +51,7 @@ uint16_t compressUV(float uv) {
   return reduceFloat16bit(uv, 0, 5);
 }  
 
-Packet generateGeneralSensor(uint8_t iteration, uint8_t packetsCounter, int i, Vector3 *accReads, 
+Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, Vector3 *accReads, 
               Vector3 *magReads, Vector3 *gyroReads, float *uvReads) {
   Packet generalSensorPacket;
   //Create "general sensor values" packets, both compressed and uncompressed.
@@ -64,7 +65,7 @@ Packet generateGeneralSensor(uint8_t iteration, uint8_t packetsCounter, int i, V
   generalSensorPacket.ArrayType.twoByte[8] = compressGyroscope(gyroReads[i/2].y);
   generalSensorPacket.ArrayType.twoByte[10] = compressGyroscope(gyroReads[i/2].z);
   //Magnetometer readings
-  generalSensorPacket.ArrayType.twoByte[12] = compressMagnetometer(magReads[i/2].x);  //Is magnetometer data signed?
+  generalSensorPacket.ArrayType.twoByte[12] = compressMagnetometer(magReads[i/2].x);
   generalSensorPacket.ArrayType.twoByte[14] = compressMagnetometer(magReads[i/2].y);
   generalSensorPacket.ArrayType.twoByte[16] = compressMagnetometer(magReads[i/2].z);
   //UV reading
@@ -73,7 +74,7 @@ Packet generateGeneralSensor(uint8_t iteration, uint8_t packetsCounter, int i, V
   return generalSensorPacket;
 }  
 
-Packet generateMagXSensor(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateMagX(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -93,7 +94,7 @@ Packet generateMagXCompressed(Vector3 *magReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateMagYSensor(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateMagY(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -113,7 +114,7 @@ Packet generateMagYCompressed(Vector3 *magReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateMagZSensor(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateMagZ(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -133,7 +134,7 @@ Packet generateMagZCompressed(Vector3 *magReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateGyroXSensor(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateGyroX(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -153,7 +154,7 @@ Packet generateGyroXCompressed(Vector3 *gyroReads, uint8_t iteration, uint8_t pa
   return sensorPacket;
 }  
 
-Packet generateGyroYSensor(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateGyroY(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -173,7 +174,7 @@ Packet generateGyroYCompressed(Vector3 *gyroReads, uint8_t iteration, uint8_t pa
   return sensorPacket;
 }  
 
-Packet generateGyroZSensor(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateGyroZ(Vector3 *gyroReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -193,7 +194,7 @@ Packet generateGyroZCompressed(Vector3 *gyroReads, uint8_t iteration, uint8_t pa
   return sensorPacket;
 }  
 
-Packet generateAccXSensor(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateAccX(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -213,7 +214,7 @@ Packet generateAccXCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateAccYSensor(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateAccY(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -233,7 +234,7 @@ Packet generateAccYCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateAccZSensor(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateAccZ(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -250,5 +251,25 @@ Packet generateAccZCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
     sensorPacket.ArrayType.twoByte[i] = compressAccelerometer(accReads[i].z);
   }
   setPacketFields(&sensorPacket, ACCZ_FN_COMP, iteration, packetsCounter);
+  return sensorPacket;
+}  
+
+Packet generateUV(float *uvReads, uint8_t iteration, uint8_t packetsCounter) {
+  //Un-compressed
+  Packet sensorPacket;
+  for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
+    sensorPacket.ArrayType.fourByte[i] = uvReads[i*2];
+  }
+  setPacketFields(&sensorPacket, UV1_FN, iteration, packetsCounter);
+  return sensorPacket;
+}
+
+Packet generateUVCompressed(float *uvReads, uint8_t iteration, uint8_t packetsCounter) {
+  //Compressed  
+  Packet sensorPacket;
+  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+    sensorPacket.ArrayType.twoByte[i] = compressUV(uvReads[i]);
+  }
+  setPacketFields(&sensorPacket, UV1_FN_COMP, iteration, packetsCounter);
   return sensorPacket;
 }  

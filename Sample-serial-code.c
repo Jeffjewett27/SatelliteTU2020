@@ -9,6 +9,7 @@
 
 const int BUSY_LINE = 10;
 
+/*
 int main() {
     char ack1 = 'A', ack2='B', ack3='C';
 
@@ -39,8 +40,7 @@ int main() {
         print("Count=%d\n", fdserial_rxCount(sr));
 
         // Read 1st letter of ACK/NACK
-        while(fdserial_rxCount(sr)==0) {        // Wait until there is
-something in the RX buffer
+        while(fdserial_rxCount(sr)==0) {        // Wait until there is something in the RX buffer
             pause(10);
         }
         ack1 = fdserial_rxChar(sr);
@@ -66,3 +66,4 @@ something in the RX buffer
 
     return 0;
 }
+*/
