@@ -1,5 +1,6 @@
 #include "lsm9ds1.h"
 #include "IMUSensor.h"
+#include "simpletools.h"
 
 int __pinM;
 //float __mRes;
@@ -7,7 +8,9 @@ int __mBiasRaw[3] = {0,0,0};
 unsigned char __settings_mag_scale;
 
 void imu_initialize() {
-  imu_init(7, 6, 5, 4);
+  //scl, sdio, cs_ag, cs_m
+  int val = imu_init(0, 1, 2, 3);
+  print("imu initialized to %d\n", val);
 }
   
 //unit: g's
