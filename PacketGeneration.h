@@ -9,7 +9,9 @@ uint16_t compressMagnetometer(float mag);
 uint16_t compressUV(float uv);
 
 Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, Vector3 *accReads, 
-              Vector3 *magReads, Vector3 *gyroReads, float *uvReads);
+              Vector3 *magReads, Vector3 *gyroReads, float *uvReads, float *temp1Reads, 
+              uint8_t *temp2Reads, uint8_t *temp3Reads, uint8_t *ambientLightReads, 
+              uint8_t *lightToFrequencyReads);
               
 Packet generateMagX(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateMagY(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter);
@@ -38,3 +40,11 @@ Packet generateAccZCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
 Packet generateUV(float *uvReads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateUVCompressed(float *uvReads, uint8_t iteration, uint8_t packetsCounter);
 
+Packet generateTemp1(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateTemp1Compressed(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateTemp2(uint8_t *temp2Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateTemp3(uint8_t *temp3Reads, uint8_t iteration, uint8_t packetsCounter);
+
+Packet generateAmbientLight(uint8_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter);
+
+Packet generateLightToFrequency(uint8_t *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
