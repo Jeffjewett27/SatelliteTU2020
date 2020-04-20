@@ -38,3 +38,39 @@ uint8_t readAnalog() {
          ADS1015_REG_POINTER_CONVERT, 1, &val, 2); //read the value from EEPROM into pc
   return val;
 }
+
+void writeRegister(uint8_t i2cAddress, uint8_t reg, uint16_t value) {
+  i2cAddress <<= 1;
+  i2cAddress &= -2;
+  i2c_start(adcBus);
+  if(i2c_writeByte(busID, i2cAddr)) return;
+  //Wire.beginTransmission(i2cAddress);
+  i2c_writeByte(adcBus, reg);
+  //i2cwrite((uint8_t)reg);
+  i2c_writeByte(adcBus, (uint8_t)(value >> 8));
+  //i2cwrite((uint8_t)(value >> 8));
+  i2c_writeByte(adcBus, (uint8_t)(value & 0xFF));
+  //i2cwrite((uint8_t)(value & 0xFF));
+  i2c_stop(adcBus);
+  //Wire.endTransmission();
+}
+
+uint16_t readRegister(uint8_t i2cAddress, uint8_t reg) {
+  i2cAddress <<= 1;
+  i2cAddress &= -2;
+  i2c_start(adcBus);
+  if(i2c_writeByte(busID, i2cAddress)) return 0;
+  //Wire.beginTransmission(i2cAddress);
+  i2c_writeByte(adcBus, reg);
+  //i2cwrite(reg);
+  i2c_stop(adcBus);
+  //Wire.endTransmission();
+  i2cAddress |= 1;                                       // Set i2cAddr.bit0 (read)
+  i2c_start(adcBus);
+  if(i2c_writeByte(adcBus, i2cAddress)) return 0;
+  uint8_t readBuf[2];
+  readBuf[0] = i2c_readByte(adcBus, 0);
+  readBuf[1] = i2c_readByte(adcBus, 1);
+  //Wire.requestFrom(i2cAddress, (uint8_t)2);
+  return ((buf[0] << 8) | buf[1]);
+}
