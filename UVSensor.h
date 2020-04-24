@@ -1,2 +1,0 @@
-float uvRead();
-void uvInit();

@@ -7,11 +7,12 @@ uint16_t compressAccelerometer(float accel);
 uint16_t compressGyroscope(float gyro);
 uint16_t compressMagnetometer(float mag);
 uint16_t compressUV(float uv);
+uint16_t compressLightToFrequency(float ltf);
 
 Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, Vector3 *accReads, 
-              Vector3 *magReads, Vector3 *gyroReads, float *uvReads, float *temp1Reads, 
-              uint8_t *temp2Reads, uint8_t *temp3Reads, uint8_t *ambientLightReads, 
-              uint8_t *lightToFrequencyReads);
+              Vector3 *magReads, Vector3 *gyroReads, float *uv1Reads, uint16_t *uv2Reads, 
+              float *temp1Reads, uint16_t *temp2Reads, uint16_t *temp3Reads, float *lightToFrequencyReads,
+              uint16_t *currentSenseResistorReads);
               
 Packet generateMagX(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateMagY(Vector3 *magReads, uint8_t iteration, uint8_t packetsCounter);
@@ -37,14 +38,17 @@ Packet generateAccXCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
 Packet generateAccYCompressed(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateAccZCompressed(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter);
 
-Packet generateUV(float *uvReads, uint8_t iteration, uint8_t packetsCounter);
-Packet generateUVCompressed(float *uvReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateUV1(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter);
+
+Packet generateUV2(uint16_t *uv2Reads, uint8_t iteration, uint8_t packetsCounter);
 
 Packet generateTemp1(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateTemp1Compressed(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
-Packet generateTemp2(uint8_t *temp2Reads, uint8_t iteration, uint8_t packetsCounter);
-Packet generateTemp3(uint8_t *temp3Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateTemp2(uint16_t *temp2Reads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateTemp3(uint16_t *temp3Reads, uint8_t iteration, uint8_t packetsCounter);
 
-Packet generateAmbientLight(uint8_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateLightToFrequency(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateLightToFrequencyCompressed(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
 
-Packet generateLightToFrequency(uint8_t *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateCurrentSenseResistor(uint16_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter);

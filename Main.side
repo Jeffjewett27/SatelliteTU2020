@@ -19,7 +19,23 @@ PinValues.h
 EEPROM.h
 PacketGeneration.c
 PacketGeneration.h
-SerialOutput.c
+Sample-serial-code.c
+GammaSensor.h
+TemperatureSensors.h
+AmbientLight.h
+ADC.c
+LightToFrequency.h
+AmbientLight.c
+LightToFrequency.c
+GammaSensor.c
+TemperatureSensors.c
+CurrentSenseResistor.c
+CurrentSenseResistor.h
+UVSensor2.c
+UVSensor2.h
+UVSensors.c
+UVSensors.h
+ADC.h
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os
