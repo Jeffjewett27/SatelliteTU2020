@@ -15,6 +15,7 @@ i2c *adcBus;
  uint8_t adcAddress = 0x48;
 #endif
 
+
 void adc_initI2C() {
   //i2c_newBus(scl,sda, mode)q
   adcBus = i2c_newbus(14,  13,   0); //28 and 29 are i2c pin numbers and 0 is an i2c mode
@@ -99,3 +100,10 @@ uint16_t readConfig() {
   //       ADS1015_REG_POINTER_CONFIG, 1, (char *)&val, -2); //read the value from EEPROM into pc
   return val;
 }
+
+float convertAnalog(uint16_t x) {
+  float m = 0.00018750;
+  float b = 0.0024810;
+  float converted = m*x + b;
+  return converted;
+}  
