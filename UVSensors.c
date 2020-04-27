@@ -1,24 +1,15 @@
-#include "adcDCpropab.h"                            // Include adcDCpropAB
 #include "simpletools.h"
+#include "ADC.h"
+#include "UVSensors.h"
 
-const float CONVERSIONCONST = 0.1;
-		
-//--- UV Sensor 1 ---
-void uv1Init() {
-  adc_init(21, 20, 19, 18); //A/D 3,2,1,0
-}
+const float UV1_CONVERSIONCONST = 0.1; //voltage / UV1_CONVERSIONCONST = uv level (will be done in post processing in the SDD)
+const uint8_t UV1_ADC_PORT = 0;
+const uint8_t UV2_ADC_PORT = 1;
   
-float uv1Read() {
- float analog = adc_volts(1);
- float uvVal = analog/CONVERSIONCONST;
-  print("uvreading: %.6f\n", uvVal);
-  return uvVal;
+uint16_t uv1Read() {
+ return readAnalog(UV1_ADC_PORT);
 }  
 
-
-//--- UV Sensor 2 ---
-void uv2Init() {}
-
 uint16_t uv2Read() {
-  return 0;
+  return readAnalog(UV2_ADC_PORT);
 }

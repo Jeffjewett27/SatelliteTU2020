@@ -1,0 +1,14 @@
+void startLightGammaThread();
+void stopLightGammaThread();
+
+//try not to call from other threads
+void gamma_initialize();
+void light_initialize();
+
+//read count since last reset
+uint32_t gamma_read();
+uint32_t lightToFrequency_read();
+
+//these functions have the side effect of resetting the respective counter to zero
+uint32_t gamma_read_reset();
+uint32_t lightToFrequency_read_reset();
