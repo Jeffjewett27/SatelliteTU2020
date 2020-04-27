@@ -1,11 +1,11 @@
 #include "simpletools.h"
-#include "GammaSensor.h"
+#include "GammaLightSensors.h"
 
 const int GAMMA_PIN = 0;
 const int LIGHT_PIN = 2;
 
-volatile uint32_t gammaCount = 0;
-volatile uint32_t lightCount = 0;
+volatile uint32_t gCount = 0;
+volatile uint32_t lCount = 0;
 volatile int gOverflow = 0;
 volatile int lOverflow = 0;
 volatile int gReset = 0;
@@ -22,18 +22,18 @@ void stopLightGammaThread() {
 }  
   
 void gamma_initialize() {
-  gammaCount = 0;
+  gCount = 0;
   gOverflow = 0;
   gReset = 0;
 }
 
 void light_initialize() {
-  lightCount = 0;
+  lCount = 0;
   lOverflow = 0;
   lReset = 0;
 }
 
-uint8_t gamma_light_thread() {
+void gamma_light_thread() {
   int gFreeze = 0;
   int lFreeze = 0;
   gamma_initialize();

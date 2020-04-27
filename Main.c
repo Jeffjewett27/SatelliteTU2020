@@ -1,6 +1,6 @@
 /*
  * Author: Mitchell Toth
- * Modification Date: April 24, 2020
+ * Modification Date: April 15, 2020
  * Purpose: Coordinate and control all sending/receiving of sensor data.
  */
 
@@ -9,18 +9,17 @@
 #define NUM_4_BYTE_READINGS 8
 
 #include "simpletools.h"
-#include "Packet.h"
+#include "UVSensors.h"
+#include "IMUSensor.h"
+#include "GammaLightSensors.h"
+#include "TemperatureSensors.h"
 #include "queue.h"
+#include "Packet.h"
 #include "EEPROM.h"
 #include "DataConversion.h"
 #include "PacketGeneration.h"
 #include "MultithreadTest.h"
-#include "UVSensors.h"
-#include "IMUSensor.h"
-#include "GammaSensor.h"
-#include "TemperatureSensors.h"
-#include "CurrentSenseResistor.h"
-#include "LightToFrequency.h"
+#include "SensorReadings.h"
 
 
 //Function declarations.
@@ -30,9 +29,6 @@ uint8_t enqueuePacket(uint8_t packetsCounter, queue *serialBusQueue, Packet sens
 
 //0 = not calibrated, 1 = calibrated, global to all threads.
 volatile int magnetometerCalibrated = 0;
-
-//Useful 'debug' flag. 0 = off, 1 = debug mode.
-const int DEBUG = 1;
 
 
 
@@ -59,8 +55,10 @@ int main() {
   //Keep track of total packets sent, as well as main loop iteration.
   uint8_t packetsCounter;
   if (isByteCheckSet()) {
+    //read in from EEPROM
     packetsCounter = readPacketCount();
   } else {
+    //initialize EEPROM on the first powerup
     setByteCheck();
     setPacketCount(0);
     packetsCounter = 0;
@@ -74,43 +72,48 @@ int main() {
     //While gathering enough data to do this, we create "general sensor values" packets.
     //This allows us to at least send some data immediately when the serial busy line goes low.
     
-    Vector3 accelerationReadings[NUM_2_BYTE_READINGS];
+    /*Vector3 accelerationReadings[NUM_2_BYTE_READINGS];
     Vector3 gyroscopeReadings[NUM_2_BYTE_READINGS];
     Vector3 magnetometerReadings[NUM_2_BYTE_READINGS];
-    float uv1Readings[NUM_2_BYTE_READINGS];
-    uint16_t uv2Readings[NUM_2_BYTE_READINGS];
-    float temp1Readings[NUM_2_BYTE_READINGS];
+    uint16_t uv1Readings[NUM_2_BYTE_READINGS];
+    float temp1Readings[NUM_1_BYTE_READINGS];
     uint16_t temp2Readings[NUM_2_BYTE_READINGS];
     uint16_t temp3Readings[NUM_2_BYTE_READINGS];
-    float lightToFrequencyReadings[NUM_2_BYTE_READINGS];
-    uint16_t currentSenseResistorReadings[NUM_2_BYTE_READINGS];
+    uint8_t ambientLightReadings[NUM_1_BYTE_READINGS];
+    uint16_t lightToFrequencyReadings[NUM_2_BYTE_READINGS];*/
+    SensorReadings sensors;
     
+    lightToFrequency_read_reset();
+    gamma_read_reset();
   	//For approximately 1 minute (32 iterations -- approx 2 sec each):
     for (int i=0; i<32; i++) {
-  		//If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
-      //Create "general sensor" packet containing data from a variety of sensors.
-      if (i%8 == 0) {
-        Packet generalSensorPacket = generateGeneralSensorPacket(iteration, packetsCounter, i, accelerationReadings, 
-            gyroscopeReadings, magnetometerReadings, uv1Readings, uv2Readings, temp1Readings, temp2Readings, 
-            temp3Readings, lightToFrequencyReadings, currentSenseResistorReadings);
-        packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, generalSensorPacket);
-      }
-
+  		 //If reading sensor N on this iteration, read it and add to sensor N's packet(s):
       
-      //If reading sensor N on this iteration, read it and add to sensor N's packet(s):
+      //1 byte sensors:
+      sensors.temp2Readings[i] = temperature2_read();
+      sensors.temp3Readings[i] = temperature3_read();
+      //sensors.ambientLightReadings[i] = ambientLight_read();
+      sensors.lightToFrequencyReadings[i] = lightToFrequency_read_reset();
+      
       //2 and 4 byte sensors:
       if (i%2 == 0) {
-        accelerationReadings[i/2] = imu_accelerometerRead();
-        gyroscopeReadings[i/2] = imu_gyroscopeRead();
-        magnetometerReadings[i/2] = imu_magnetometerRead();
-        uv1Readings[i/2] = uv1Read();
-        uv2Readings[i/2] = uv2Read();
-        temp1Readings[i/2] = temperature1_read();
-        temp2Readings[i/2] = temperature2_read();
-        temp3Readings[i/2] = temperature2_read();
-        lightToFrequencyReadings[i/2] = lightToFrequency_read();
-        currentSenseResistorReadings[i/2] = currentSenseResistor_read();
+        sensors.accelerationReadings[i/2] = imu_accelerometerRead();
+        sensors.gyroscopeReadings[i/2] = imu_gyroscopeRead();
+        sensors.magnetometerReadings[i/2] = imu_magnetometerRead();
+        sensors.uv1Readings[i/2] = uv1Read();
+        sensors.uv2Readings[i/2] = uv2Read();
+        sensors.temp1Readings[i] = temperature1_read();
       }       
+      
+      //If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
+      //Create "general sensor" packet containing data from a variety of sensors.
+      if (i%8 == 0 && getQueueSize(serialBusQueue) < 2) {
+        /*accelerationReadings, 
+            gyroscopeReadings, magnetometerReadings, uvReadings, temp1Readings, temp2Readings, temp3Readings,
+            ambientLightReadings, lightToFrequencyReadings*/
+        Packet generalSensorPacket = generateGeneralSensorPacket(iteration, packetsCounter, i, &sensors);
+        packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, generalSensorPacket);
+      }
 
       //Delay 2 sec.
       pause(2000);
@@ -123,121 +126,111 @@ int main() {
     
     /*--------------------------------------------------------------------------------------*/
     /*------------------------------------ Magnetometer ------------------------------------*/
-    sensorPacket = generateMagX(magnetometerReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    if (iteration % 2 == 0) {
+      sensorPacket = generateMagXCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    sensorPacket = generateMagY(magnetometerReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    sensorPacket = generateMagZ(magnetometerReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateMagXCompressed(magnetometerReadings, iteration, packetsCounter);
+      sensorPacket = generateMagYCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateMagYCompressed(magnetometerReadings, iteration, packetsCounter);
+      sensorPacket = generateMagZCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    } else {
+      sensorPacket = generateMagX(sensors.magnetometerReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateMagZCompressed(magnetometerReadings, iteration, packetsCounter);
+      sensorPacket = generateMagY(sensors.magnetometerReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    }    
-    
+      
+      sensorPacket = generateMagZ(sensors.magnetometerReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    }            
     
     /*-----------------------------------------------------------------------------------*/
     /*------------------------------------ Gyroscope ------------------------------------*/
-    sensorPacket = generateGyroX(gyroscopeReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    sensorPacket = generateGyroY(gyroscopeReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    sensorPacket = generateGyroZ(gyroscopeReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateGyroXCompressed(gyroscopeReadings, iteration, packetsCounter);
+    if (iteration % 2 == 0) {
+      sensorPacket = generateGyroXCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateGyroYCompressed(gyroscopeReadings, iteration, packetsCounter);
+      sensorPacket = generateGyroYCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateGyroZCompressed(gyroscopeReadings, iteration, packetsCounter);
+      sensorPacket = generateGyroZCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    }    
+    } else {
+      sensorPacket = generateGyroX(sensors.gyroscopeReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
+      sensorPacket = generateGyroY(sensors.gyroscopeReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+
+      sensorPacket = generateGyroZ(sensors.gyroscopeReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    }            
     
     /*--------------------------------------------------------------------------------------*/
     /*------------------------------------ Acceleration ------------------------------------*/
-    sensorPacket = generateAccX(accelerationReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    if (iteration % 2 == 0) {
+      sensorPacket = generateAccXCompressed(sensors.accelerationReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+   
+      sensorPacket = generateAccYCompressed(sensors.accelerationReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    sensorPacket = generateAccY(accelerationReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    sensorPacket = generateAccZ(accelerationReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateAccXCompressed(accelerationReadings, iteration, packetsCounter);
+      sensorPacket = generateAccZCompressed(sensors.accelerationReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    } else {
+      sensorPacket = generateAccX(sensors.accelerationReadings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+       
+      sensorPacket = generateAccY(sensors.accelerationReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateAccYCompressed(accelerationReadings, iteration, packetsCounter);
+      sensorPacket = generateAccZ(sensors.accelerationReadings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
-      sensorPacket = generateAccZCompressed(accelerationReadings, iteration, packetsCounter);
-      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     }      
-    
-    
+       
     /*----------------------------------------------------------------------------*/
     /*------------------------------------ UV ------------------------------------*/
-    sensorPacket = generateUV1(uv1Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);  
-    
-    sensorPacket = generateUV2(uv2Readings, iteration, packetsCounter);
+    sensorPacket = generateUV1(sensors.uv1Readings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateUV1Compressed(uv1Readings, iteration, packetsCounter);
-      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    }  
+    sensorPacket = generateUV2(sensors.uv1Readings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    /*sensorPacket = generateUVCompressed(uv1Readings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);*/
     
     
     /*-------------------------------------------------------------------------------------*/
     /*------------------------------------ Temperature ------------------------------------*/
-    sensorPacket = generateTemp1(temp1Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);  
-    
-    sensorPacket = generateTemp2(temp2Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    sensorPacket = generateTemp3(temp3Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateTemp1Compressed(temp1Readings, iteration, packetsCounter);
+    if (iteration % 2 == 0) {
+      sensorPacket = generateTemp1Compressed(sensors.temp1Readings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    }  
+    } else {     
+      sensorPacket = generateTemp1(sensors.temp1Readings, iteration, packetsCounter);
+      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    }   
+    
+    sensorPacket = generateTemp2(sensors.temp2Readings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    sensorPacket = generateTemp3(sensors.temp3Readings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    
+    /*---------------------------------------------------------------------------------------*/
+    /*------------------------------------ Ambient Light ------------------------------------*/
+    //sensorPacket = generateAmbientLight(sensors.ambientLightReadings, iteration, packetsCounter);
+    //packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
     
     /*--------------------------------------------------------------------------------------------*/
     /*------------------------------------ Light to Frequency ------------------------------------*/
-    sensorPacket = generateLightToFrequency(lightToFrequencyReadings, iteration, packetsCounter);
+    sensorPacket = generateLightToFrequency(sensors.lightToFrequencyReadings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    if (iteration%2 == 0 || DEBUG) {
-      sensorPacket = generateLightToFrequencyCompressed(lightToFrequencyReadings, iteration, packetsCounter);
-      packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    }    
-    
-    
-    /*------------------------------------------------------------------------------------------------*/
-    /*------------------------------------ Current Sense Resistor ------------------------------------*/
-    sensorPacket = generateCurrentSenseResistor(currentSenseResistorReadings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-      
     
     /*-----------------------------------------------------------
       All queued sensor packets are written in a separate thread.
@@ -253,16 +246,13 @@ int main() {
 
 
 void initializeAllSensors() {
+  startLightGammaThread();
   eeprom_initI2C();
   imu_initialize();
-  uv1Init();
-  uv2Init();
   temperature1_initialize();
   temperature2_initialize();
   temperature3_initialize();
-  gamma_initialize();
-  lightToFrequency_initialize();
-  currentSenseResistor_initialize();
+  //ambientLight_initialize();
 }  
 
 void flashLEDs() {

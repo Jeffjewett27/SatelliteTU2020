@@ -68,34 +68,35 @@ uint16_t compressLightToFrequency(float ltf) {
   return reduceFloat16bit(ltf, 0, 5);
 }
 
-Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, Vector3 *accReads, 
-              Vector3 *magReads, Vector3 *gyroReads, float *uv1Reads, uint16_t *uv2Reads, 
-              float *temp1Reads, uint16_t *temp2Reads, uint16_t *temp3Reads, float *lightToFrequencyReads,
-              uint16_t *currentSenseResistorReads) {
+/*Vector3 *accReads, 
+              Vector3 *magReads, Vector3 *gyroReads, uint16_t *uv1Reads, uint16_t *uv2Reads, 
+              float *temp1Reads, uint16_t *temp2Reads, uint16_t *temp3Reads, uint16_t *lightToFrequencyReads,
+              uint16_t *currentSenseResistorReads*/
+Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, SensorReadings *sensors) {
   Packet generalSensorPacket;
   //Acceleration readings
-  generalSensorPacket.ArrayType.twoByte[0] = compressAccelerometer(accReads[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[2] = compressAccelerometer(accReads[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[4] = compressAccelerometer(accReads[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[0] = compressAccelerometer(sensors->accelerationReadings[i/2].x);
+  generalSensorPacket.ArrayType.twoByte[2] = compressAccelerometer(sensors->accelerationReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[4] = compressAccelerometer(sensors->accelerationReadings[i/2].z);
   //Gyroscope readings
-  generalSensorPacket.ArrayType.twoByte[6] = compressGyroscope(gyroReads[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[8] = compressGyroscope(gyroReads[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[10] = compressGyroscope(gyroReads[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[6] = compressGyroscope(sensors->gyroscopeReadings[i/2].x);
+  generalSensorPacket.ArrayType.twoByte[8] = compressGyroscope(sensors->gyroscopeReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[10] = compressGyroscope(sensors->gyroscopeReadings[i/2].z);
   //Magnetometer readings
-  generalSensorPacket.ArrayType.twoByte[12] = compressMagnetometer(magReads[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[14] = compressMagnetometer(magReads[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[16] = compressMagnetometer(magReads[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[12] = compressMagnetometer(sensors->magnetometerReadings[i/2].x);
+  generalSensorPacket.ArrayType.twoByte[14] = compressMagnetometer(sensors->magnetometerReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[16] = compressMagnetometer(sensors->magnetometerReadings[i/2].z);
   //UV readings
-  generalSensorPacket.ArrayType.twoByte[18] = compressUV(uv1Reads[i/2]);
-  generalSensorPacket.ArrayType.twoByte[20] = uv2Reads[i/2];
+  generalSensorPacket.ArrayType.twoByte[18] = compressUV(sensors->uv1Readings[i/2]);
+  generalSensorPacket.ArrayType.twoByte[20] = sensors->uv2Readings[i/2];
   //Temperature readings
-  generalSensorPacket.ArrayType.twoByte[22] = compressIMUTemp(temp1Reads[i/2]);
-  generalSensorPacket.ArrayType.twoByte[24] = temp2Reads[i/2];
-  generalSensorPacket.ArrayType.twoByte[26] = temp3Reads[i/2];
+  generalSensorPacket.ArrayType.twoByte[22] = compressIMUTemp(sensors->temp1Readings[i/2]);
+  generalSensorPacket.ArrayType.twoByte[24] = sensors->temp2Readings[i/2];
+  generalSensorPacket.ArrayType.twoByte[26] = sensors->temp3Readings[i/2];
   //Light to Frequency reading
-  generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(lightToFrequencyReads[i/2]);
+  generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
   //Current Sense Resistor reading
-  generalSensorPacket.ArrayType.twoByte[30] = currentSenseResistorReads[i/2];
+  //generalSensorPacket.ArrayType.twoByte[30] = sensors->currentSenseResistorReadings[i/2];
   
   //That's the limit of our space, so we'll need to make room for the gamma pulse count.
   
@@ -283,17 +284,18 @@ Packet generateAccZCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
   return sensorPacket;
 }  
 
-Packet generateUV1(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateUV1(uint16_t *uv1Reads, uint8_t iteration, uint8_t packetsCounter) {
   //Un-compressed
   Packet sensorPacket;
-  for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.fourByte[i] = uv1Reads[i*2];
+  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+    sensorPacket.ArrayType.twoByte[i] = uv1Reads[i];
   }
   setPacketFields(&sensorPacket, UV1_FN, iteration, packetsCounter);
   return sensorPacket;
 }
 
-Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter) {
+//it is no longer necessary to compress, since uv is now a uint16_t
+/*Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter) {
   //Compressed  
   Packet sensorPacket;
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
@@ -301,7 +303,7 @@ Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packets
   }
   setPacketFields(&sensorPacket, UV1_FN_COMP, iteration, packetsCounter);
   return sensorPacket;
-}  
+}*/ 
 
 Packet generateUV2(uint16_t *uv2Reads, uint8_t iteration, uint8_t packetsCounter) {
   //Compressed  
@@ -349,15 +351,17 @@ Packet generateTemp3(uint16_t *temp3Reads, uint8_t iteration, uint8_t packetsCou
   return sensorPacket;
 }
 
-Packet generateLightToFrequency(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateLightToFrequency(uint16_t *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
-  for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.fourByte[i] = lightToFrequencyReads[i*2];
+  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
+    sensorPacket.ArrayType.twoByte[i] = lightToFrequencyReads[i];
   }
   setPacketFields(&sensorPacket, LIGHT_TO_FREQUENCY_FN, iteration, packetsCounter);
   return sensorPacket;
 }  
 
+//LtF is now a uint16_t
+/*
 Packet generateLightToFrequencyCompressed(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
@@ -365,7 +369,7 @@ Packet generateLightToFrequencyCompressed(float *lightToFrequencyReads, uint8_t 
   }
   setPacketFields(&sensorPacket, LIGHT_TO_FREQUENCY_FN_COMP, iteration, packetsCounter);
   return sensorPacket;
-}  
+}*/
 
 Packet generateCurrentSenseResistor(uint16_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;

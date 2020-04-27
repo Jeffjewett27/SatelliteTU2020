@@ -4,6 +4,7 @@ void stopLightGammaThread();
 //try not to call from other threads
 void gamma_initialize();
 void light_initialize();
+void gamma_light_thread();
 
 //read count since last reset
 uint32_t gamma_read();
