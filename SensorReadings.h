@@ -12,7 +12,6 @@ struct SensorReadings {
   Vector3 gyroscopeReadings[NUM_2_BYTE_READINGS];
   Vector3 magnetometerReadings[NUM_2_BYTE_READINGS];
   uint16_t uv1Readings[NUM_2_BYTE_READINGS];
-  uint16_t uv2Readings[NUM_2_BYTE_READINGS];
   float temp1Readings[NUM_1_BYTE_READINGS];
   uint16_t temp2Readings[NUM_2_BYTE_READINGS];
   uint16_t temp3Readings[NUM_2_BYTE_READINGS];

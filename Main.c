@@ -100,8 +100,7 @@ int main() {
         sensors.accelerationReadings[i/2] = imu_accelerometerRead();
         sensors.gyroscopeReadings[i/2] = imu_gyroscopeRead();
         sensors.magnetometerReadings[i/2] = imu_magnetometerRead();
-        sensors.uv1Readings[i/2] = uv1Read();
-        sensors.uv2Readings[i/2] = uv2Read();
+        sensors.uvReadings[i/2] = uvRead();
         sensors.temp1Readings[i] = temperature1_read();
       }       
       

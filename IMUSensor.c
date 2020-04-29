@@ -46,6 +46,13 @@ Vector3 imu_magnetometerRead() {
   return magnet;
 } 
 
+//units: celcius
+float imu_temperatureRead() {
+  float _temp;
+  imu_readTempCalculated(&_temp, 0); //read celcius into _temp
+  return _temp;
+} 
+
 void imu_calibrateMagnetometer() {
   int i = 0, j, mx, my, mz;
   char ck0 = 0, ck1 = 0, ck2 = 0, ck3 = 0, ck4 = 0, ck5 = 0, ck6 = 0, ck7 = 0, ck8 = 0;
