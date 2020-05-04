@@ -7,35 +7,35 @@
 
 const uint8_t GENERAL_FN = 0x01;
 
-const uint8_t LIGHT_TO_FREQUENCY_FN_COMP = 0x21;
-const uint8_t UV1_FN_COMP = 0x22;
-const uint8_t UV2_FN = 0x23;
-const uint8_t CURRENT_SENSE_RESISTOR_FN = 0x24;
-const uint8_t TEMP1_FN_COMP = 0x25;
-const uint8_t TEMP2_FN = 0x26;
-const uint8_t TEMP3_FN = 0x27;
-const uint8_t MAGX_FN_COMP = 0x28;
-const uint8_t MAGY_FN_COMP = 0x29;
-const uint8_t MAGZ_FN_COMP = 0x2A;
-const uint8_t GYROX_FN_COMP = 0x2B;
-const uint8_t GYROY_FN_COMP = 0x2C;
-const uint8_t GYROZ_FN_COMP = 0x2D;
-const uint8_t ACCX_FN_COMP = 0x2E;
-const uint8_t ACCY_FN_COMP = 0x2F;
-const uint8_t ACCZ_FN_COMP = 0x20;
+const uint8_t MAGX_FN_COMP = 0x20;
+const uint8_t MAGY_FN_COMP = 0x21;
+const uint8_t MAGZ_FN_COMP = 0x22;
+const uint8_t TEMP1_FN_COMP = 0x23;
+const uint8_t LIGHT_TO_FREQUENCY_FN_COMP = 0x24;
+const uint8_t GYROX_FN_COMP = 0x25;
+const uint8_t GYROY_FN_COMP = 0x26;
+const uint8_t GYROZ_FN_COMP = 0x27;
+const uint8_t ACCX_FN_COMP = 0x28;
+const uint8_t ACCY_FN_COMP = 0x29;
+const uint8_t ACCZ_FN_COMP = 0x2A;
 
-const uint8_t LIGHT_TO_FREQUENCY_FN = 0x41;
-const uint8_t UV1_FN = 0x42;
+const uint8_t CURRENT_SENSE_RESISTOR_FN = 0x41;
+const uint8_t MAGX_FN = 0x42;
+const uint8_t MAGY_FN = 0x43;
+const uint8_t MAGZ_FN = 0x44;
 const uint8_t TEMP1_FN = 0x45;
-const uint8_t MAGX_FN = 0x48;
-const uint8_t MAGY_FN = 0x49;
-const uint8_t MAGZ_FN = 0x4A;
-const uint8_t GYROX_FN = 0x4B;
-const uint8_t GYROY_FN = 0x4C;
-const uint8_t GYROZ_FN = 0x4D;
-const uint8_t ACCX_FN = 0x4E;
-const uint8_t ACCY_FN = 0x4F;
-const uint8_t ACCZ_FN = 0x40;
+const uint8_t TEMP2_FN = 0x46;
+const uint8_t TEMP3_FN = 0x47;
+const uint8_t LIGHT_TO_FREQUENCY_FN = 0x48;
+const uint8_t GYROX_FN = 0x49;
+const uint8_t GYROY_FN = 0x4A;
+const uint8_t GYROZ_FN = 0x4B;
+const uint8_t ACCX_FN = 0x4C;
+const uint8_t ACCY_FN = 0x4D;
+const uint8_t ACCZ_FN = 0x4E;
+const uint8_t UV1_FN = 0x4F;
+
+
 
 
 void setPacketFields(Packet *sensorPacket, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter) {
