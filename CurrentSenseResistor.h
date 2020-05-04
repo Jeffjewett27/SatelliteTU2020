@@ -1,3 +1,3 @@
 void currentSenseResistor_initialize();
 
-uint8_t currentSenseResistor_read();
+uint16_t currentSenseResistor_read();

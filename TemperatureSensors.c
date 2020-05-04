@@ -4,11 +4,9 @@
 #include "ADC.h"
 
 const uint8_t TEMP2_PIN = 1;
-const uint8_t TEMP3_PIN = 0;
 
 void temperature1_initialize() {}
 void temperature2_initialize() {}
-void temperature3_initialize() {}
 
 float temperature1_read() {  
   //Temperature from IMU
@@ -17,11 +15,6 @@ float temperature1_read() {
 
 uint16_t temperature2_read() {
   uint16_t val = readAnalog(TEMP2_PIN);
-  return val;
-}  
-
-uint16_t temperature3_read() {
-  uint16_t val = readAnalog(TEMP3_PIN);
   return val;
 }  
 

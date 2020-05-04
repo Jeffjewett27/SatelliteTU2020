@@ -37,16 +37,13 @@ Packet generateAccYCompressed(Vector3 *accReads, uint8_t iteration, uint8_t pack
 Packet generateAccZCompressed(Vector3 *accReads, uint8_t iteration, uint8_t packetsCounter);
 
 Packet generateUV1(uint16_t *uv1Reads, uint8_t iteration, uint8_t packetsCounter);
-//Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter);
-
-Packet generateUV2(uint16_t *uv2Reads, uint8_t iteration, uint8_t packetsCounter);
 
 Packet generateTemp1(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateTemp1Compressed(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateTemp2(uint16_t *temp2Reads, uint8_t iteration, uint8_t packetsCounter);
-Packet generateTemp3(uint16_t *temp3Reads, uint8_t iteration, uint8_t packetsCounter);
 
 Packet generateLightToFrequency(uint16_t *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
-//Packet generateLightToFrequencyCompressed(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateGamma(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateGammaComp(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter);
 
 Packet generateCurrentSenseResistor(uint16_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter);

@@ -7,6 +7,9 @@
 
 const uint8_t GENERAL_FN = 0x01;
 
+const uint8_t GAMMA_FN = 0x50;
+const uint8_t GAMMA_FN_COMP = 0x2B;
+
 const uint8_t MAGX_FN_COMP = 0x20;
 const uint8_t MAGY_FN_COMP = 0x21;
 const uint8_t MAGZ_FN_COMP = 0x22;
@@ -88,11 +91,9 @@ Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, in
   generalSensorPacket.ArrayType.twoByte[16] = compressMagnetometer(sensors->magnetometerReadings[i/2].z);
   //UV readings
   generalSensorPacket.ArrayType.twoByte[18] = compressUV(sensors->uv1Readings[i/2]);
-  generalSensorPacket.ArrayType.twoByte[20] = sensors->uv2Readings[i/2];
   //Temperature readings
   generalSensorPacket.ArrayType.twoByte[22] = compressIMUTemp(sensors->temp1Readings[i/2]);
   generalSensorPacket.ArrayType.twoByte[24] = sensors->temp2Readings[i/2];
-  generalSensorPacket.ArrayType.twoByte[26] = sensors->temp3Readings[i/2];
   //Light to Frequency reading
   generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
   //Current Sense Resistor reading
@@ -294,27 +295,6 @@ Packet generateUV1(uint16_t *uv1Reads, uint8_t iteration, uint8_t packetsCounter
   return sensorPacket;
 }
 
-//it is no longer necessary to compress, since uv is now a uint16_t
-/*Packet generateUV1Compressed(float *uv1Reads, uint8_t iteration, uint8_t packetsCounter) {
-  //Compressed  
-  Packet sensorPacket;
-  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.twoByte[i] = compressUV(uv1Reads[i]);
-  }
-  setPacketFields(&sensorPacket, UV1_FN_COMP, iteration, packetsCounter);
-  return sensorPacket;
-}*/ 
-
-Packet generateUV2(uint16_t *uv2Reads, uint8_t iteration, uint8_t packetsCounter) {
-  //Compressed  
-  Packet sensorPacket;
-  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.twoByte[i] = uv2Reads[i];
-  }
-  setPacketFields(&sensorPacket, UV2_FN, iteration, packetsCounter);
-  return sensorPacket;
-} 
-
 Packet generateTemp1(float *temp1Reads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
   for (int i=0; i<NUM_4_BYTE_READINGS; i++) {
@@ -342,15 +322,6 @@ Packet generateTemp2(uint16_t *temp2Reads, uint8_t iteration, uint8_t packetsCou
   return sensorPacket;
 }
 
-Packet generateTemp3(uint16_t *temp3Reads, uint8_t iteration, uint8_t packetsCounter) {
-  Packet sensorPacket;
-  for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.twoByte[i] = temp3Reads[i];
-  }
-  setPacketFields(&sensorPacket, TEMP3_FN, iteration, packetsCounter);
-  return sensorPacket;
-}
-
 Packet generateLightToFrequency(uint16_t *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
@@ -360,21 +331,32 @@ Packet generateLightToFrequency(uint16_t *lightToFrequencyReads, uint8_t iterati
   return sensorPacket;
 }  
 
-//LtF is now a uint16_t
-/*
-Packet generateLightToFrequencyCompressed(float *lightToFrequencyReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateGamma(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.twoByte[i] = compressLightToFrequency(lightToFrequencyReads[i]);
+    sensorPacket.ArrayType.twoByte[i] = gammaReads[i*2];
   }
-  setPacketFields(&sensorPacket, LIGHT_TO_FREQUENCY_FN_COMP, iteration, packetsCounter);
+  setPacketFields(&sensorPacket, GAMMA_FN, iteration, packetsCounter);
   return sensorPacket;
-}*/
+}
 
-Packet generateCurrentSenseResistor(uint16_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter) {
+Packet generateGammaComp(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter) {
+  Packet sensorPacket;
+  for (int i=0; i<NUM_1_BYTE_READINGS; i++) {
+    uint16_t val = gammaReads[i];
+    if (val > 255) {
+      val = 255;
+    }      
+    sensorPacket.ArrayType.oneByte[i] = (uint8_t)val;
+  }
+  setPacketFields(&sensorPacket, GAMMA_FN_COMP, iteration, packetsCounter);
+  return sensorPacket;
+}
+
+Packet generateCurrentSenseResistor(uint16_t *currentSenseReads, uint8_t iteration, uint8_t packetsCounter) {
   Packet sensorPacket;
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
-    sensorPacket.ArrayType.twoByte[i] = ambientLightReads[i];
+    sensorPacket.ArrayType.twoByte[i] = currentSenseReads[i];
   }
   setPacketFields(&sensorPacket, CURRENT_SENSE_RESISTOR_FN, iteration, packetsCounter);
   return sensorPacket;

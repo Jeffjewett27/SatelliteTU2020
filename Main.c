@@ -13,6 +13,7 @@
 #include "IMUSensor.h"
 #include "GammaLightSensors.h"
 #include "TemperatureSensors.h"
+#include "CurrentSenseResistor.h"
 #include "queue.h"
 #include "Packet.h"
 #include "EEPROM.h"
@@ -89,19 +90,15 @@ int main() {
     for (int i=0; i<32; i++) {
   		 //If reading sensor N on this iteration, read it and add to sensor N's packet(s):
       
-      //1 byte sensors:
-      sensors.temp2Readings[i] = temperature2_read();
-      sensors.temp3Readings[i] = temperature3_read();
-      //sensors.ambientLightReadings[i] = ambientLight_read();
-      sensors.lightToFrequencyReadings[i] = lightToFrequency_read_reset();
-      
       //2 and 4 byte sensors:
       if (i%2 == 0) {
         sensors.accelerationReadings[i/2] = imu_accelerometerRead();
         sensors.gyroscopeReadings[i/2] = imu_gyroscopeRead();
         sensors.magnetometerReadings[i/2] = imu_magnetometerRead();
-        sensors.uvReadings[i/2] = uvRead();
+        sensors.uv1Readings[i/2] = uvRead();
         sensors.temp1Readings[i] = temperature1_read();
+        sensors.temp2Readings[i] = temperature2_read();
+        sensors.currentSenseReadings[i] = currentSenseResistor_read();
       }       
       
       //If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
@@ -116,6 +113,12 @@ int main() {
 
       //Delay 2 sec.
       pause(2000);
+      
+      //read light and gamma after a 2 second pause
+      sensors.gammaReadings[i] = gamma_read_reset();
+      if (i%2 == 0) {
+        sensors.lightToFrequencyReadings[i] = lightToFrequency_read_reset();
+      }        
     }
     
   	//Clear write queue of any "general sensor" packets.
@@ -195,12 +198,6 @@ int main() {
     sensorPacket = generateUV1(sensors.uv1Readings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    sensorPacket = generateUV2(sensors.uv1Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    /*sensorPacket = generateUVCompressed(uv1Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);*/
-    
     
     /*-------------------------------------------------------------------------------------*/
     /*------------------------------------ Temperature ------------------------------------*/
@@ -215,19 +212,25 @@ int main() {
     sensorPacket = generateTemp2(sensors.temp2Readings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    sensorPacket = generateTemp3(sensors.temp3Readings, iteration, packetsCounter);
-    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
-    
-    /*---------------------------------------------------------------------------------------*/
-    /*------------------------------------ Ambient Light ------------------------------------*/
-    //sensorPacket = generateAmbientLight(sensors.ambientLightReadings, iteration, packetsCounter);
-    //packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
-    
     
     /*--------------------------------------------------------------------------------------------*/
     /*------------------------------------ Light to Frequency ------------------------------------*/
     sensorPacket = generateLightToFrequency(sensors.lightToFrequencyReadings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    /*--------------------------------------------------------------------------------------------*/
+    /*------------------------------------       Gamma        ------------------------------------*/
+    int gamma2ByteCount = 0;
+    for (int i = 0; i < NUM_1_BYTE_READINGS; ++i) {
+      if (sensors.gammaReadings[i] > 255) {
+        gamma2ByteCount++;
+      }        
+    }      
+    if (gamma2ByteCount > 1) {
+      sensorPacket = generateGamma(sensors.gammaReadings, iteration, packetsCounter);
+    } else {
+      sensorPacket = generateGammaComp(sensors.gammaReadings, iteration, packetsCounter);
+    }      
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
     
@@ -250,7 +253,6 @@ void initializeAllSensors() {
   imu_initialize();
   temperature1_initialize();
   temperature2_initialize();
-  temperature3_initialize();
   //ambientLight_initialize();
 }  
 
