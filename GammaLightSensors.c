@@ -51,7 +51,6 @@ void gamma_light_thread() {
     if (gFreeze) {
       gFreeze = 0;
     } else if (input(GAMMA_PIN)) {
-      print("gamma: %d\n", gCount);
       
       gCount++;
       if (gCount == 0) {  //check if an overflow has happened
@@ -66,9 +65,6 @@ void gamma_light_thread() {
     if (lFreeze) {
       lFreeze = 0;
     } else if (input(LIGHT_PIN)) {
-      if (lCount % 1000 == 0) {
-        print("light: %d\n", lCount);
-      }      
       lCount++;
       if (lCount == 0) {  //check if an overflow has happened
         lOverflow++; 
@@ -95,23 +91,5 @@ uint32_t lightToFrequency_read_reset() {
     val = ~0; //max value for unsigned int
   }
   lReset = 1; //let the other thread take care of resetting to avoid race condition
-  return val;
-}  
-
-uint32_t gamma_read() {
-  uint32_t val = gCount;
-  if (gOverflow) {
-    //if there was an overflow, return max value instead of some lower amount
-    val = ~0; //max value for unsigned int
-  }
-  return val;
-}  
-
-uint32_t lightToFrequency_read() {
-  uint32_t val = lCount;
-  if (lOverflow) {
-    //if there was an overflow, return max value instead of some lower amount
-    val = ~0; //max value for unsigned int
-  }
   return val;
 }  
