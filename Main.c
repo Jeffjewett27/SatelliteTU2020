@@ -20,6 +20,7 @@
 #include "PacketGeneration.h"
 #include "SensorReadings.h"
 #include "MagCalibrationThread.h"
+#include "SerialOutput.c"
 
 
 //Function declarations.
