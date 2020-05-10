@@ -28,7 +28,6 @@ const uint8_t MAGY_FN = 0x43;
 const uint8_t MAGZ_FN = 0x44;
 const uint8_t TEMP1_FN = 0x45;
 const uint8_t TEMP2_FN = 0x46;
-const uint8_t TEMP3_FN = 0x47;
 const uint8_t LIGHT_TO_FREQUENCY_FN = 0x48;
 const uint8_t GYROX_FN = 0x49;
 const uint8_t GYROY_FN = 0x4A;
@@ -40,36 +39,31 @@ const uint8_t UV1_FN = 0x4F;
 
 
 
-
+//Sets the fields of a packet
 void setPacketFields(Packet *sensorPacket, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter) {
   sensorPacket->fnCode = fnCode;
   sensorPacket->iteration = iteration;
   sensorPacket->packetsCounter = packetsCounter;
 }  
 
+//compresses accelerometer
 uint16_t compressAccelerometer(float accel) {
   return reduceFloat16bit(accel, 1, 5);
 }
 
+//compresses gyroscope
 uint16_t compressGyroscope(float gyro) {
   return reduceFloat16bit(gyro, 1, 5);
 }    
 
+//compresses magnetometer
 uint16_t compressMagnetometer(float mag) {
   return reduceFloat16bit(mag, 1, 5);
-}    
-
-uint16_t compressUV(float uv) {
-  return reduceFloat16bit(uv, 0, 5);
-}  
+}
 
 uint16_t compressIMUTemp(float temp) {
   return reduceFloat16bit(temp, 0, 5);
 }  
-
-uint16_t compressLightToFrequency(float ltf) {
-  return reduceFloat16bit(ltf, 0, 5);
-}
 
 /*Vector3 *accReads, 
               Vector3 *magReads, Vector3 *gyroReads, uint16_t *uv1Reads, uint16_t *uv2Reads, 

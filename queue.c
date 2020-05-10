@@ -30,7 +30,6 @@ Packet peekQueue(queue *q){
   return(q->front->value);
 }
   
-//int is a placeholder for testing
 void enqueue(queue *q, Packet val){
   node *finger;
   finger = malloc(sizeof(node));
@@ -55,11 +54,3 @@ Packet dequeue(queue *q){
  if(q->size == 0) initializeQueue(q);
  return value;
 }
-
-/*
-int main(){
-  queue *q;
-  q = malloc(sizeof(queue));
-  initializeQueue(q);    
-} 
-*/  

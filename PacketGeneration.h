@@ -4,11 +4,11 @@
 
 void setPacketFields(Packet *sensorPacket, uint8_t fnCode, uint8_t iteration, uint8_t packetsCounter);
 
+//compress float values
 uint16_t compressAccelerometer(float accel);
 uint16_t compressGyroscope(float gyro);
 uint16_t compressMagnetometer(float mag);
-uint16_t compressUV(float uv);
-uint16_t compressLightToFrequency(float ltf);
+uint16_t compressIMUTemp(float temp);
 
 Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, SensorReadings *sensors);
               

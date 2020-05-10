@@ -7,6 +7,7 @@
 #define NUM_2_BYTE_READINGS 16
 #define NUM_4_BYTE_READINGS 8
 
+//a struct to store all the readings being collected
 struct SensorReadings {
   Vector3 accelerationReadings[NUM_2_BYTE_READINGS];
   Vector3 gyroscopeReadings[NUM_2_BYTE_READINGS];

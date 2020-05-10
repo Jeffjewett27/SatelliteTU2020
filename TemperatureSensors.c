@@ -5,19 +5,19 @@
 
 const uint8_t TEMP2_PIN = 1;
 
-void temperature1_initialize() {}
-void temperature2_initialize() {}
-
-float temperature1_read() {  
-  //Temperature from IMU
+ 
+//Temperature from IMU
+float temperature1_read() { 
   return imu_temperatureRead();
 }  
 
+//Temperature through ADC
 uint16_t temperature2_read() {
   uint16_t val = readAnalog(TEMP2_PIN);
   return val;
 }  
 
+//Post processing covert ADC val to temperature
 float temperature2_convert(uint16_t val) {
   float voltage = convertAnalog(val);
   float deltaV = voltage - 0/*1.263*/;

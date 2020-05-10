@@ -11,16 +11,19 @@ fdserial *sr;
 queue *packetQueue;
 int *thread;
 
+//initializes pins
 void initSerial() {
   sr = fdserial_open(17, 18, 0, 38400);
 }  
 
+//starts the serial output thread
 void serialOutputThread(queue *pQueue) {
   packetQueue = pQueue;
   initSerial();
   thread = cog_run(serialOutputLoop, 128);
 }  
 
+//forever waits for busy to drop then sends first element of queue
 void serialOutputLoop() {
   while(1) {
     while(isBusy()) {
@@ -37,6 +40,7 @@ void serialOutputLoop() {
   }  
 }  
 
+//outputs a packet
 void outputPacket(char* packet) {
   fdserial_rxFlush(sr);
   fdserial_txFlush(sr);
@@ -51,6 +55,7 @@ void outputPacket(char* packet) {
   }
 }
 
+//determines if signal is ACK
 int isACK() {
   int numACKBytes = 3;
   char response[numACKBytes];
@@ -75,6 +80,7 @@ int isACK() {
   return val;
 }  
 
+//checks the busy pin
 int isBusy() {
   return input(BUSY_PIN);
 }  
