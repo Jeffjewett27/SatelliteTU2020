@@ -1,3 +1,8 @@
+/*
+ * Author: Jeff Jewett and Mitchell Toth
+ * Modification Date: 5/10/20
+*/
+
 #include "PacketGeneration.h"
 #include "DataConversion.h"
 
@@ -71,10 +76,6 @@ uint16_t compressLightToFrequency(float ltf) {
   return reduceFloat16bit(ltf, 0, 5);
 }
 
-/*Vector3 *accReads, 
-              Vector3 *magReads, Vector3 *gyroReads, uint16_t *uv1Reads, uint16_t *uv2Reads, 
-              float *temp1Reads, uint16_t *temp2Reads, uint16_t *temp3Reads, uint16_t *lightToFrequencyReads,
-              uint16_t *currentSenseResistorReads*/
 Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, int i, SensorReadings *sensors) {
   Packet generalSensorPacket;
   //Acceleration readings
@@ -96,10 +97,6 @@ Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, in
   generalSensorPacket.ArrayType.twoByte[24] = sensors->temp2Readings[i/2];
   //Light to Frequency reading
   generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
-  //Current Sense Resistor reading
-  //generalSensorPacket.ArrayType.twoByte[30] = sensors->currentSenseResistorReadings[i/2];
-  
-  //That's the limit of our space, so we'll need to make room for the gamma pulse count.
   
   setPacketFields(&generalSensorPacket, GENERAL_FN, iteration, packetsCounter);
   return generalSensorPacket;

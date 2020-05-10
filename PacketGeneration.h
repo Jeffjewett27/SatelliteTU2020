@@ -1,3 +1,8 @@
+/*
+ * Author: Jeff Jewett and Mitchell Toth
+ * Modification Date: 5/10/20
+*/
+
 #include "Packet.h"
 #include "Vector3.h"
 #include "SensorReadings.h"

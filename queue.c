@@ -1,6 +1,6 @@
 /*
- * Author: Caleb
- * Modification Date: April 5, 2020
+ * Author: Caleb Eckerly
+ * Modification Date: 4/5/20
  */
 
 #include "simpletools.h"
@@ -29,8 +29,7 @@ int getQueueSize(queue *q){
 Packet peekQueue(queue *q){
   return(q->front->value);
 }
-  
-//int is a placeholder for testing
+
 void enqueue(queue *q, Packet val){
   node *finger;
   finger = malloc(sizeof(node));
@@ -56,7 +55,7 @@ Packet dequeue(queue *q){
  return value;
 }
 
-/*
+/* (Below shows how to declare and initialize an instance of the queue)
 int main(){
   queue *q;
   q = malloc(sizeof(queue));

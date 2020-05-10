@@ -28,6 +28,10 @@ CurrentSenseResistor.h
 UVSensors.c
 UVSensors.h
 SensorReadings.h
+LightToFrequency.c
+DataConversion.h
+MagCalibrationThread.h
+Sample-serial-code.c
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os

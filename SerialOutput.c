@@ -1,4 +1,9 @@
-#include "simpletools.h" // Include simple tools
+/*
+ * Author: Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
+#include "simpletools.h"
 #include "fdserial.h"
 #include "SerialOutput.h"
 

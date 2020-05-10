@@ -1,3 +1,8 @@
+/*
+ * Author: Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 //initializes the i2c connection
 void eeprom_initI2C();
 

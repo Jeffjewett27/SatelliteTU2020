@@ -1,5 +1,8 @@
-void temperature1_initialize();
-void temperature2_initialize();
+/*
+ * Author: Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 
 float temperature1_read();  //Temperature from IMU
 uint16_t temperature2_read();

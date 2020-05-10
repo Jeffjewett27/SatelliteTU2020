@@ -1,3 +1,8 @@
+/*
+ * Author: Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 #ifndef SENSOR_READINGS
 #define SENSOR_READINGS
 

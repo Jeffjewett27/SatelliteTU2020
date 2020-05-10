@@ -1,8 +1,7 @@
 /*
  * Author: Mitchell Toth
- * Modification Date: April 15, 2020
- * Purpose: Coordinate and control all sending/receiving of sensor data.
- */
+ * Modification Date: 4/15/20
+*/
 
 #define NUM_1_BYTE_READINGS 32
 #define NUM_2_BYTE_READINGS 16
@@ -19,7 +18,6 @@
 #include "EEPROM.h"
 #include "DataConversion.h"
 #include "PacketGeneration.h"
-#include "MultithreadTest.h"
 #include "SensorReadings.h"
 
 
@@ -35,17 +33,11 @@ volatile int magnetometerCalibrated = 0;
 
 //Main function
 int main() {
-  //startTest();
-  //pause(100000);
   
   //Packet queue.
   queue *serialBusQueue;
   serialBusQueue = malloc(sizeof(queue));
   initializeQueue(serialBusQueue);
-  
-  //Powerup event occurs.
-  //Ensure IMU is powered up. Involves solid state relay.
-  //ensureIMUPowered();
   
   //Get all the sensors ready to read and transmit data.
   initializeAllSensors();
@@ -73,17 +65,7 @@ int main() {
     //While gathering enough data to do this, we create "general sensor values" packets.
     //This allows us to at least send some data immediately when the serial busy line goes low.
     
-    /*Vector3 accelerationReadings[NUM_2_BYTE_READINGS];
-    Vector3 gyroscopeReadings[NUM_2_BYTE_READINGS];
-    Vector3 magnetometerReadings[NUM_2_BYTE_READINGS];
-    uint16_t uv1Readings[NUM_2_BYTE_READINGS];
-    float temp1Readings[NUM_1_BYTE_READINGS];
-    uint16_t temp2Readings[NUM_2_BYTE_READINGS];
-    uint16_t temp3Readings[NUM_2_BYTE_READINGS];
-    uint8_t ambientLightReadings[NUM_1_BYTE_READINGS];
-    uint16_t lightToFrequencyReadings[NUM_2_BYTE_READINGS];*/
     SensorReadings sensors;
-    
     lightToFrequency_read_reset();
     gamma_read_reset();
   	//For approximately 1 minute (32 iterations -- approx 2 sec each):
@@ -104,9 +86,6 @@ int main() {
       //If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
       //Create "general sensor" packet containing data from a variety of sensors.
       if (i%8 == 0 && getQueueSize(serialBusQueue) < 2) {
-        /*accelerationReadings, 
-            gyroscopeReadings, magnetometerReadings, uvReadings, temp1Readings, temp2Readings, temp3Readings,
-            ambientLightReadings, lightToFrequencyReadings*/
         Packet generalSensorPacket = generateGeneralSensorPacket(iteration, packetsCounter, i, &sensors);
         packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, generalSensorPacket);
       }
@@ -239,7 +218,6 @@ int main() {
     ----------------------------------------------------------- */
 
     //Don't move on until queue is small enough in size (to avoid overflow issues).
-    //while (getQueueSize(serialBusQueue) >= 4) {pause(10);}  --Wouldn't this make the general sensor loop useless?
     while (!isQueueEmpty(serialBusQueue)) {pause(10);}
   
     iteration++;
@@ -251,9 +229,6 @@ void initializeAllSensors() {
   startLightGammaThread();
   eeprom_initI2C();
   imu_initialize();
-  temperature1_initialize();
-  temperature2_initialize();
-  //ambientLight_initialize();
 }  
 
 void flashLEDs() {

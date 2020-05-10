@@ -1,3 +1,8 @@
+/*
+ * Author: Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 #include "simpletools.h"
 #include "GammaLightSensors.h"
 
@@ -33,6 +38,7 @@ void light_initialize() {
   lReset = 0;
 }
 
+//run the gamma light sensor, started by 'startLightGammaThread'
 void gamma_light_thread() {
   int gFreeze = 0;
   int lFreeze = 0;
@@ -48,8 +54,7 @@ void gamma_light_thread() {
       print("gamma: %d\n", gCount);
       
       gCount++;
-      if (gCount == 0) {
-        //an overflow has happened
+      if (gCount == 0) {  //check if an overflow has happened
         gOverflow++; 
       }        
       gFreeze = 1;
@@ -65,8 +70,7 @@ void gamma_light_thread() {
         print("light: %d\n", lCount);
       }      
       lCount++;
-      if (lCount == 0) {
-        //an overflow has happened
+      if (lCount == 0) {  //check if an overflow has happened
         lOverflow++; 
       }  
       lFreeze = 1;

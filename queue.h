@@ -1,6 +1,6 @@
 /*
- * Author: Caleb
- * Modification Date: April 5, 2020
+ * Author: Caleb Eckerly
+ * Modification Date: 4/5/20
  */
 
 #include "Packet.h"

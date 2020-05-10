@@ -1,14 +1,18 @@
+/*
+ * Author: Isaac Wickham and Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 #include "lsm9ds1.h"
 #include "IMUSensor.h"
 #include "simpletools.h"
 
 int __pinM;
-//float __mRes;
 int __mBiasRaw[3] = {0,0,0};
 unsigned char __settings_mag_scale;
 
 void imu_initialize() {
-  //scl, sdio, cs_ag, cs_m
+  //Parameters: imu_init(scl, sdio, cs_ag, cs_m)
   int val = imu_init(0, 1, 2, 3);
   print("imu initialized to %d\n", val);
 }

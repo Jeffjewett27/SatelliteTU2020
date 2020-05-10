@@ -1,3 +1,8 @@
+/*
+ * Author: Isacc Wickham and Jeff Jewett
+ * Modification Date: 5/10/20
+*/
+
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
