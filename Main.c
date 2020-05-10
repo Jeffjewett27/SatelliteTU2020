@@ -19,6 +19,7 @@
 #include "DataConversion.h"
 #include "PacketGeneration.h"
 #include "SensorReadings.h"
+#include "MagCalibrationThread.h"
 
 
 //Function declarations.
@@ -38,6 +39,7 @@ int main() {
   queue *serialBusQueue;
   serialBusQueue = malloc(sizeof(queue));
   initializeQueue(serialBusQueue);
+  serialOutputThread(serialBusQueue);
   
   //Get all the sensors ready to read and transmit data.
   initializeAllSensors();
@@ -197,6 +199,7 @@ int main() {
     sensorPacket = generateLightToFrequency(sensors.lightToFrequencyReadings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
+    
     /*--------------------------------------------------------------------------------------------*/
     /*------------------------------------       Gamma        ------------------------------------*/
     int gamma2ByteCount = 0;
@@ -211,6 +214,14 @@ int main() {
       sensorPacket = generateGammaComp(sensors.gammaReadings, iteration, packetsCounter);
     }      
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    
+    /*------------------------------------------------------------------------------------------------*/
+    /*------------------------------------ Current Sense Resistor ------------------------------------*/
+    sensorPacket = generateCurrentSenseResistor(sensors.currentSenseReadings, iteration, packetsCounter);
+    packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
+    
+    
     
     
     /*-----------------------------------------------------------
@@ -229,6 +240,7 @@ void initializeAllSensors() {
   startLightGammaThread();
   eeprom_initI2C();
   imu_initialize();
+  startMagCalibrationThread();
 }  
 
 void flashLEDs() {

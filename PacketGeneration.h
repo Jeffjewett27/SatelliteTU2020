@@ -51,4 +51,4 @@ Packet generateLightToFrequency(uint16_t *lightToFrequencyReads, uint8_t iterati
 Packet generateGamma(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter);
 Packet generateGammaComp(uint16_t *gammaReads, uint8_t iteration, uint8_t packetsCounter);
 
-Packet generateCurrentSenseResistor(uint16_t *ambientLightReads, uint8_t iteration, uint8_t packetsCounter);
+Packet generateCurrentSenseResistor(uint16_t *currentSenseReads, uint8_t iteration, uint8_t packetsCounter);
