@@ -3,6 +3,7 @@
 
 #include "simpletools.h"
 
+//A packet which will be transmitted
 struct Packet {
   uint8_t fnCode;
   union {

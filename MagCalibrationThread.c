@@ -5,22 +5,20 @@
 
 #include "simpletools.h"
 #include "IMUSensor.h"
+#include "MagCalibrationThread.h"
 
 int *magCog;
 
-void magCalibrationThread();
-
+//Starts a separate thread to calibrate the magnetometer
 void startMagCalibrationThread() {
-  print("start");
   magCog = cog_run(magCalibrationThread, 128);
 }
 
+//Runs the thread-blocking function imu_calibrateMagnetometer
 void magCalibrationThread() {
-  high(27);
   imu_calibrateMagnetometer();
   if (magCog == NULL) {
     return;
   }    
-  low(27);
   cog_end(magCog);
 }  

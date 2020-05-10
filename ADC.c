@@ -20,10 +20,13 @@ i2c *adcBus;
  uint8_t adcAddress = 0x48;
 #endif
 
+const int ADC_SCL = 14;
+const int ADC_SDA = 13;
+
 
 void adc_initI2C() {
   //Parameters: i2c_newBus(scl, sda, mode)
-  adcBus = i2c_newbus(14, 13, 0);  //28 and 29 are i2c pin numbers and 0 is an i2c mode
+  adcBus = i2c_newbus(ADC_SCL, ADC_SDA, 0);
 }  
 
 void adc_setConfig(uint8_t port) {
@@ -75,16 +78,6 @@ uint16_t readRegister(uint8_t i2cAddress, uint8_t reg) {
   readBuf[0] = i2c_readByte(adcBus, 0);
   readBuf[1] = i2c_readByte(adcBus, 1);
   return ((readBuf[0] << 8) | readBuf[1]);
-}
-
-uint16_t readConfig() {                                   
-  if (adcBus == NULL) {
-    adc_initI2C();
-  } 
-  
-  while(i2c_busy(adcBus, adcAddress));
-  uint16_t val = readRegister(adcAddress, ADS1015_REG_POINTER_CONFIG);
-  return val;
 }
 
 float convertAnalog(uint16_t x) {
