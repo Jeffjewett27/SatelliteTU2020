@@ -6,6 +6,7 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
+//defines a 3-vector returned by the IMU
 struct Vector3 {
   float x;
   float y;

@@ -16,6 +16,7 @@ typedef struct node node;
 
 #ifndef QUEUE_STRUCT
 #define QUEUE_STRUCT
+//a queue, duh
 struct queue{
   int size;
   node *front;
