@@ -6,11 +6,15 @@
 #include "simpletools.h"
 #include "fdserial.h"
 #include "SerialOutput.h"
+#include "EEPROM.h"
 
 const int BYTES_PER_PACKET = 35;
 const char ACK[] = {0xAA, 0x05, 0x00};
 const int NAK = 0xAA05FF;
 const int BUSY_PIN = 16;
+
+const int SERIAL_RX = 17;
+const int SERIAL_TX = 18;
 
 fdserial *sr;
 queue *packetQueue;
@@ -18,7 +22,7 @@ int *thread;
 
 //initializes pins
 void initSerial() {
-  sr = fdserial_open(17, 18, 0, 38400);
+  sr = fdserial_open(SERIAL_RX, SERIAL_TX, 0, 38400);
 }  
 
 //starts the serial output thread
@@ -40,6 +44,8 @@ void serialOutputLoop() {
     Packet packet = peekQueue(packetQueue);
     outputPacket((char*)&packet);
     if (isACK()) {
+      uint8_t packetCount = packet->packetsCounter;
+      setPacketCount(packetCount)
       dequeue(packetQueue);
     }
   }  
