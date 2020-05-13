@@ -81,9 +81,9 @@ int main() {
         sensors.gyroscopeReadings[i/2] = imu_gyroscopeRead();
         sensors.magnetometerReadings[i/2] = imu_magnetometerRead();
         sensors.uv1Readings[i/2] = uvRead();
-        sensors.temp1Readings[i] = temperature1_read();
-        sensors.temp2Readings[i] = temperature2_read();
-        sensors.currentSenseReadings[i] = currentSenseResistor_read();
+        sensors.temp1Readings[i/2] = temperature1_read();
+        sensors.temp2Readings[i/2] = temperature2_read();
+        sensors.currentSenseReadings[i/2] = currentSenseResistor_read();
       }       
       
       //If iteration is a multiple of 8 (0, 8, 16, 24):		// Sec: 0, 16, 32, 48
@@ -99,7 +99,7 @@ int main() {
       //read light and gamma after a 2 second pause
       sensors.gammaReadings[i] = gamma_read_reset();
       if (i%2 == 0) {
-        sensors.lightToFrequencyReadings[i] = lightToFrequency_read_reset();
+        sensors.lightToFrequencyReadings[i/2] = lightToFrequency_read_reset();
       }        
     }
     

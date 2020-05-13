@@ -93,10 +93,15 @@ Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, in
   //UV readings
   generalSensorPacket.ArrayType.twoByte[18] = compressUV(sensors->uv1Readings[i/2]);
   //Temperature readings
-  generalSensorPacket.ArrayType.twoByte[22] = compressIMUTemp(sensors->temp1Readings[i/2]);
+  generalSensorPacket.ArrayType.fourByte[20] = sensors->temp1Readings[i/2]; //4 byte value- uncompressed
   generalSensorPacket.ArrayType.twoByte[24] = sensors->temp2Readings[i/2];
+  //Current Sense reading
+  generalSensorPacket.ArrayType.twoByte[26] = sensors->currentSenseReadings[i/2];
   //Light to Frequency reading
   generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
+  generalSensorPacket.ArrayType.oneByte[30] = sensors->gammaReadings[i];
+  
+  //byte 31 unset
   
   setPacketFields(&generalSensorPacket, GENERAL_FN, iteration, packetsCounter);
   return generalSensorPacket;

@@ -44,8 +44,8 @@ void serialOutputLoop() {
     Packet packet = peekQueue(packetQueue);
     outputPacket((char*)&packet);
     if (isACK()) {
-      uint8_t packetCount = packet->packetsCounter;
-      setPacketCount(packetCount)
+      uint8_t packetCount = packet.packetsCounter;
+      setPacketCount(packetCount);
       dequeue(packetQueue);
     }
   }  
