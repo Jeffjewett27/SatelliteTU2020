@@ -69,7 +69,7 @@ void imu_calibrateMagnetometer() {
   
   float ax, ay, az;
     
-  while(i < 128 || (ck0 + ck1 + ck2 + ck3 + ck4 + ck5 + ck6 + ck7 + ck8) < 7)
+  while(i < 128 || (ck0 + ck1 + ck2 + ck3 + ck4 + ck5 + ck6 + ck7 + ck8) < 6)
   {
     while (!imu_magAvailable(ALL_AXIS));
     imu_readMag(&mx, &my, &mz);
