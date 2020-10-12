@@ -5,6 +5,7 @@
 
 #include "simpletools.h"
 #include "queue.h"
+#include "Packet.h"
 
 void initializeQueue(queue *q){
   q->size = 0;
@@ -31,6 +32,9 @@ Packet peekQueue(queue *q){
 }
 
 void enqueue(queue *q, Packet val){
+  printPacket(val);
+  //printPacketRaw((char*)&val);
+  
   node *finger;
   finger = malloc(sizeof(node));
   finger->value = val;

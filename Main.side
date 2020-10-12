@@ -2,7 +2,6 @@ Main.c
 IMUSensor.c
 IMUSensor.h
 queue.c
-EEPROM.c
 queue.h
 Packet.h
 DataConversion.c
@@ -10,7 +9,6 @@ SerialOutput.c
 SerialOutput.h
 MagCalibrationThread.c
 Vector3.h
-EEPROM.h
 PacketGeneration.c
 PacketGeneration.h
 GammaLightSensors.c
@@ -26,6 +24,9 @@ UVSensors.h
 SensorReadings.h
 DataConversion.h
 MagCalibrationThread.h
+Packet.c
+altIMU.c
+altIMU.h
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os
@@ -33,4 +34,4 @@ MagCalibrationThread.h
 >-fno-exceptions
 >defs::-std=c99
 >-lm
->BOARD::ACTIVITYBOARD
+>BOARD::GENERIC

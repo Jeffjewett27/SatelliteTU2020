@@ -11,10 +11,10 @@ int __pinM;
 int __mBiasRaw[3] = {0,0,0};
 unsigned char __settings_mag_scale;
 
-const int IMU_SCL = 0;
-const int IMU_SDIO = 1;
-const int IMU_CS_AG = 2;
-const int IMU_CS_M = 3;
+const int IMU_SCL = 14;
+const int IMU_SDIO = 13;
+const int IMU_CS_AG = 12;
+const int IMU_CS_M = 11;
 
 void imu_initialize() {
   //Parameters: imu_init(scl, sdio, cs_ag, cs_m)

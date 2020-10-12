@@ -6,7 +6,6 @@
 #include "simpletools.h"
 #include "fdserial.h"
 #include "SerialOutput.h"
-#include "EEPROM.h"
 
 const int BYTES_PER_PACKET = 35;
 const char ACK[] = {0xAA, 0x05, 0x00};
@@ -42,28 +41,44 @@ void serialOutputLoop() {
       continue;
     }    
     Packet packet = peekQueue(packetQueue);
-    outputPacket((char*)&packet);
+    outputPacket(&packet);
     if (isACK()) {
-      uint8_t packetCount = packet.packetsCounter;
-      setPacketCount(packetCount);
       dequeue(packetQueue);
     }
   }  
 }  
 
 //outputs a packet
-void outputPacket(char* packet) {
+void outputPacket(Packet *packet) {
+  //print("output\n");
   fdserial_rxFlush(sr);
+  //print("flush");
   fdserial_txFlush(sr);
+  
+  //print("flushed\n");
 
   //header bytes
   fdserial_txChar(sr, 0x50);
   fdserial_txChar(sr, 0x50);
   fdserial_txChar(sr, 0x50);
+  
+  //print("sent header\n");
 
-  for(int i=0; i<BYTES_PER_PACKET; i++) {
-    fdserial_txChar(sr, packet[i]);
+  fdserial_txChar(sr, packet->fnCode);
+  fdserial_txChar(sr, packet->iteration);
+  fdserial_txChar(sr, packet->packetsCounter);
+  //print("%02x ", packet->fnCode);
+  //print("%02x ", packet->iteration);
+  //print("%02x ", packet->packetsCounter);
+  
+  for(int i=0; i<32; i++) {
+    fdserial_txChar(sr, packet->ArrayType.oneByte[i]);
+    //the below function demonstrates that it is not a problem with serial output, but most likely the queue
+    //fdserial_txChar(sr, i);
+    //print("%02x", packet->ArrayType.oneByte[i]);
   }
+  
+  //print("set data\n");
 }
 
 //determines if signal is ACK
@@ -94,4 +109,4 @@ int isACK() {
 //checks the busy pin
 int isBusy() {
   return input(BUSY_PIN);
-}  
+}

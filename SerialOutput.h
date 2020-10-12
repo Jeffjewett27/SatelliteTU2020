@@ -15,7 +15,7 @@ void serialOutputLoop();
 void initSerial();
 
 //outputs a packet
-void outputPacket(char* packet);
+void outputPacket(Packet *packet);
 
 //waits and returns whether response is ack
 int isACK();

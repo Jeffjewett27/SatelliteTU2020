@@ -80,25 +80,25 @@ Packet generateGeneralSensorPacket(uint8_t iteration, uint8_t packetsCounter, in
   Packet generalSensorPacket;
   //Acceleration readings
   generalSensorPacket.ArrayType.twoByte[0] = compressAccelerometer(sensors->accelerationReadings[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[2] = compressAccelerometer(sensors->accelerationReadings[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[4] = compressAccelerometer(sensors->accelerationReadings[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[1] = compressAccelerometer(sensors->accelerationReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[2] = compressAccelerometer(sensors->accelerationReadings[i/2].z);
   //Gyroscope readings
-  generalSensorPacket.ArrayType.twoByte[6] = compressGyroscope(sensors->gyroscopeReadings[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[8] = compressGyroscope(sensors->gyroscopeReadings[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[10] = compressGyroscope(sensors->gyroscopeReadings[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[3] = compressGyroscope(sensors->gyroscopeReadings[i/2].x);
+  generalSensorPacket.ArrayType.twoByte[4] = compressGyroscope(sensors->gyroscopeReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[5] = compressGyroscope(sensors->gyroscopeReadings[i/2].z);
   //Magnetometer readings
-  generalSensorPacket.ArrayType.twoByte[12] = compressMagnetometer(sensors->magnetometerReadings[i/2].x);
-  generalSensorPacket.ArrayType.twoByte[14] = compressMagnetometer(sensors->magnetometerReadings[i/2].y);
-  generalSensorPacket.ArrayType.twoByte[16] = compressMagnetometer(sensors->magnetometerReadings[i/2].z);
+  generalSensorPacket.ArrayType.twoByte[6] = compressMagnetometer(sensors->magnetometerReadings[i/2].x);
+  generalSensorPacket.ArrayType.twoByte[7] = compressMagnetometer(sensors->magnetometerReadings[i/2].y);
+  generalSensorPacket.ArrayType.twoByte[8] = compressMagnetometer(sensors->magnetometerReadings[i/2].z);
   //UV readings
-  generalSensorPacket.ArrayType.twoByte[18] = compressUV(sensors->uv1Readings[i/2]);
+  generalSensorPacket.ArrayType.twoByte[9] = compressUV(sensors->uv1Readings[i/2]);
   //Temperature readings
-  generalSensorPacket.ArrayType.fourByte[20] = sensors->temp1Readings[i/2]; //4 byte value- uncompressed
-  generalSensorPacket.ArrayType.twoByte[24] = sensors->temp2Readings[i/2];
+  generalSensorPacket.ArrayType.fourByte[5] = sensors->temp1Readings[i/2]; //4 byte value- uncompressed
+  generalSensorPacket.ArrayType.twoByte[12] = sensors->temp2Readings[i/2];
   //Current Sense reading
-  generalSensorPacket.ArrayType.twoByte[26] = sensors->currentSenseReadings[i/2];
+  generalSensorPacket.ArrayType.twoByte[13] = sensors->currentSenseReadings[i/2];
   //Light to Frequency reading
-  generalSensorPacket.ArrayType.twoByte[28] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
+  generalSensorPacket.ArrayType.twoByte[14] = compressLightToFrequency(sensors->lightToFrequencyReadings[i/2]);
   generalSensorPacket.ArrayType.oneByte[30] = sensors->gammaReadings[i];
   
   //byte 31 unset
@@ -203,7 +203,7 @@ Packet generateGyroYCompressed(Vector3 *gyroReads, uint8_t iteration, uint8_t pa
   for (int i=0; i<NUM_2_BYTE_READINGS; i++) {
     sensorPacket.ArrayType.twoByte[i] = compressGyroscope(gyroReads[i].y);
   }
-  setPacketFields(&sensorPacket, GYROZ_FN_COMP, iteration, packetsCounter);
+  setPacketFields(&sensorPacket, GYROY_FN_COMP, iteration, packetsCounter);
   return sensorPacket;
 }  
 

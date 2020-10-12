@@ -18,3 +18,7 @@ struct Packet {
 typedef struct Packet Packet;
 
 #endif
+
+void printPacket(Packet packet);
+void printPacketRaw(char* packet);
+void makeTestPacket(Packet* packet);
