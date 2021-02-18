@@ -25,6 +25,5 @@ float temperature2_convert(uint16_t val) {
   float deltaV = voltage - 0/*1.263*/;
   float converted = deltaV / 0.01 / 1.08789;
   float farh = (converted*9)/5 + 32;
-  print("converted: %.2fC, %.2fF\n", converted, farh);
   return converted;
 }  

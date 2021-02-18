@@ -50,35 +50,21 @@ void serialOutputLoop() {
 
 //outputs a packet
 void outputPacket(Packet *packet) {
-  //print("output\n");
   fdserial_rxFlush(sr);
-  //print("flush");
   fdserial_txFlush(sr);
-  
-  //print("flushed\n");
 
   //header bytes
   fdserial_txChar(sr, 0x50);
   fdserial_txChar(sr, 0x50);
   fdserial_txChar(sr, 0x50);
-  
-  //print("sent header\n");
 
   fdserial_txChar(sr, packet->fnCode);
   fdserial_txChar(sr, packet->iteration);
   fdserial_txChar(sr, packet->packetsCounter);
-  //print("%02x ", packet->fnCode);
-  //print("%02x ", packet->iteration);
-  //print("%02x ", packet->packetsCounter);
   
   for(int i=0; i<32; i++) {
     fdserial_txChar(sr, packet->ArrayType.oneByte[i]);
-    //the below function demonstrates that it is not a problem with serial output, but most likely the queue
-    //fdserial_txChar(sr, i);
-    //print("%02x", packet->ArrayType.oneByte[i]);
   }
-  
-  //print("set data\n");
 }
 
 //determines if signal is ACK

@@ -1,6 +1,6 @@
 /*
  * Author: Mitchell Toth
- * Modification Date: 4/15/20
+ * Modification Date: 10/12/20
 */
 
 #define NUM_1_BYTE_READINGS 32
@@ -18,7 +18,6 @@
 #include "DataConversion.h"
 #include "PacketGeneration.h"
 #include "SensorReadings.h"
-#include "MagCalibrationThread.h"
 #include "SerialOutput.h"
 #include "ADC.h"
 
@@ -27,8 +26,6 @@
 void initializeAllSensors();
 uint8_t enqueuePacket(uint8_t packetsCounter, queue *serialBusQueue, Packet sensorPacket);
 
-//0 = not calibrated, 1 = calibrated, global to all threads.
-volatile int magnetometerCalibrated = 0;
 
 //Main function
 int main() {
@@ -38,17 +35,8 @@ int main() {
   initializeQueue(serialBusQueue);
   serialOutputThread(serialBusQueue);
   
-  //This seemed to work
-  /*for (int i = 0; i < 10; i++) {
-    Packet packet;
-    makeTestPacket(&packet);
-    enqueue(serialBusQueue, packet);
-    pause(100);
-  }*/
-  
   //Get all the sensors ready to read and transmit data.
   initializeAllSensors();
-  
   
   //Keep track of total packets sent, as well as main loop iteration.
   uint8_t packetsCounter = 0;
@@ -66,7 +54,7 @@ int main() {
   	//For approximately 1 minute (32 iterations -- approx 2 sec each):
     for (int i=0; i<32; i++) {
   		 //If reading sensor N on this iteration, read it and add to sensor N's packet(s):
-      printf("loop: %d\n", i);
+
       //2 and 4 byte sensors:
       
       if (i%2 == 0) {
@@ -84,7 +72,6 @@ int main() {
       if (i%8 == 0 && getQueueSize(serialBusQueue) < 2) {
         Packet generalSensorPacket = generateGeneralSensorPacket(iteration, packetsCounter, i, &sensors);
         packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, generalSensorPacket);
-        printPacketRaw((char*)&generalSensorPacket);
       }
 
       pause(2000);
@@ -96,96 +83,72 @@ int main() {
       } 
     }
     
-  	//Clear write queue of any "general sensor" packets.
-  	//clearQueue(serialBusQueue);
-    
     Packet sensorPacket;
-    /*
+    
     if (iteration % 2 == 0) {
       sensorPacket = generateMagXCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateMagYCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateMagZCompressed(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     } else {
       sensorPacket = generateMagX(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateMagY(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateMagZ(sensors.magnetometerReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     }
+    
     if (iteration % 2 == 0) {
       sensorPacket = generateGyroXCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateGyroYCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateGyroZCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     } else {
       sensorPacket = generateGyroX(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
       sensorPacket = generateGyroY(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
 
       sensorPacket = generateGyroZ(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     }
-  }    */
     
-    //leaving this block in usually still works, but not the above blocks
     if (iteration % 2 == 0) {
       sensorPacket = generateAccXCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
    
       sensorPacket = generateAccYCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
       sensorPacket = generateAccZCompressed(sensors.gyroscopeReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     } else {
       sensorPacket = generateAccX(sensors.accelerationReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
        
       sensorPacket = generateAccY(sensors.accelerationReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
       sensorPacket = generateAccZ(sensors.accelerationReadings, iteration, packetsCounter);
-      //printPacketRaw((char*)&sensorPacket);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
       
     }
-           
+    
     sensorPacket = generateUV1(sensors.uv1Readings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    //print("uv done\n");
-    print("uv done\n");
     if (iteration % 2 == 0) {
       sensorPacket = generateTemp1Compressed(sensors.temp1Readings, iteration, packetsCounter);
       packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
@@ -197,17 +160,15 @@ int main() {
     sensorPacket = generateTemp2(sensors.temp2Readings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    
     sensorPacket = generateLightToFrequency(sensors.lightToFrequencyReadings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    
+    //decide whether to compress gamma readings
     int gamma2ByteCount = 0;
     print("gamma: ");
     for (int i = 0; i < NUM_1_BYTE_READINGS; ++i) {
       print("%d ", sensors.gammaReadings[i]);
       if (sensors.gammaReadings[i] > 255) {
-        
         gamma2ByteCount++;
       }        
     }      
@@ -218,13 +179,13 @@ int main() {
     }      
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    
     sensorPacket = generateCurrentSenseResistor(sensors.currentSenseReadings, iteration, packetsCounter);
     packetsCounter = enqueuePacket(packetsCounter, serialBusQueue, sensorPacket);
     
-    
-    //Don't move on until queue is small enough in size (to avoid overflow issues).
-    while (!isQueueEmpty(serialBusQueue)) {pause(10);}
+    //wait for queue to clear out
+    while (getQueueSize(serialBusQueue) > 2) {
+      pause(100);
+    }     
   
     iteration++;
   }
@@ -235,14 +196,15 @@ void initializeAllSensors() {
   startLtfThread();
   startGammaThread();
   imu_initialize();
-  startMagCalibrationThread();
 }
 
 uint8_t enqueuePacket(uint8_t packetsCounter, queue *serialBusQueue, Packet sensorPacket) {
-  //makeTestPacket(&sensorPacket);
   packetsCounter++; 
   enqueue(serialBusQueue, sensorPacket);
-  printf("Completed packet with fnCode: 0x%x, pc: %d\n", sensorPacket.fnCode, packetsCounter);
-  //printPacket(sensorPacket);
+  //printf("Completed packet with fnCode: 0x%x, pc: %d\n", sensorPacket.fnCode, packetsCounter);
+  //necessary to prevent memory overflow
+  while (getQueueSize(serialBusQueue) > 2) {
+      pause(100);
+  }
   return packetsCounter;
 }

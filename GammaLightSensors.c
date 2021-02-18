@@ -7,16 +7,14 @@
 const int LTF_PIN = 2;  //Light to frequency
 const int RAD_PIN = 0;  //Radiation (particle detector)
 
-volatile uint16_t ltfCount = 0;  //Count of pulses
+volatile uint32_t ltfCount = 0;
 volatile int ltfOverflow = 0;
 volatile int ltfReset = 0;
-uint16_t ltfPulseCounts[16];     //Array of 1 minute's worth of pulse counts
 int *ltfCog;
 
 volatile uint16_t radCount = 0; 
 volatile int radOverflow = 0; 
-volatile int radReset = 0; 
-uint16_t radPulseCounts[32];
+volatile int radReset = 0;
 int *radCog;
 
 
@@ -35,7 +33,7 @@ void ltfThread() {
     }
     int temp = ltfCount;
     temp += count(LTF_PIN, 10);
-    if (temp > UINT16T_MAX) {
+    if (temp < ltfCount) {
       ltfOverflow = 1;
     }
     ltfCount = temp;
@@ -49,11 +47,10 @@ void initLtf() {
 }
 
 uint16_t lightToFrequency_read_reset() {
-  uint16_t val = ltfOverflow ? UINT16T_MAX : ltfCount;
+  uint16_t val = ltfOverflow ? UINT16T_MAX : (ltfCount >> 4) & 0xffff;
   ltfCount = 0;
   ltfReset = 1;
   return val;
-  //return *test;
 }
 
 void startGammaThread() {
